@@ -1,45 +1,71 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
+ * RunTracker — offline-first running companion
  *
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { StatusBar, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { DialogProvider } from './src/components/Dialog';
+import { setupChannels } from './src/services/notifications';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
+
+function ThemedApp() {
+  const { palette } = useTheme();
+  const r = parseInt(palette.background.slice(1, 3), 16);
+  const g = parseInt(palette.background.slice(3, 5), 16);
+  const b = parseInt(palette.background.slice(5, 7), 16);
+  const isDarkBackground = 0.3 * r + 0.6 * g + 0.1 * b < 128;
+  return (
+    <>
+      <StatusBar barStyle={isDarkBackground ? 'light-content' : 'dark-content'} />
+      <RootNavigator />
+    </>
+  );
+}
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setupChannels().catch(() => {});
+    const { db } = require('./src/db/database');
+    db.getSetting('onboarding.completed')
+      .then((v: string | null) => setOnboardingDone(v === 'true'))
+      .catch(() => setOnboardingDone(true));
+  }, []);
+
+  if (onboardingDone === null) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <View style={{ flex: 1, backgroundColor: '#131315' }} />
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <DialogProvider>
+            {onboardingDone ? (
+              <ThemedApp />
+            ) : (
+              <OnboardingScreen onDone={() => setOnboardingDone(true)} />
+            )}
+          </DialogProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;

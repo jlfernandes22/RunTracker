@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="light dark">
+<title>Route map</title>
+<style>
+__CSS__
+.leaflet-tile, .leaflet-tile-container img { opacity: 1 !important; }
+html, body, #map { background: #14171A; }
+.loc-icon { display: block; width: 38px; height: 38px; line-height: 38px; text-align: center; }
+.loc-icon svg { vertical-align: middle; }
+@keyframes loc-spin { to { transform: rotate(360deg); } }
+.loc-spin svg { animation: loc-spin 0.9s linear infinite; }
+#loc-toast {
+  position: absolute; left: 50%; bottom: 70px; transform: translateX(-50%);
+  background: rgba(15, 17, 20, 0.92); color: #fff; padding: 8px 14px;
+  border-radius: 8px; font: 13px system-ui, sans-serif; z-index: 1000;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 80%;
+}
+#loc-toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="map" style="position:absolute;inset:0"></div>
+<script>
+__JS__
+(function(){
+  var map = L.map('map', { zoomControl: false, attributionControl: false });
+  var TILES = {
+    dark: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    light: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  };
+  var theme = 'dark';
+  var mode = 'plan';
+  var tileLayer = L.tileLayer(TILES.dark, {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+  }).addTo(map);
+  map.setView([38.7223, -9.1393], 13);
+
+  var markers = [];
+  var line = null;
+  var plannedLine = null;
+  var posDot = null;
+
+  function post(msg) {
+    if (window.ReactNativeWebView) {
+      try { window.ReactNativeWebView.postMessage(JSON.stringify(msg)); } catch (e) {}
+    }
+  }
+
+  function colors() {
+    return theme === 'dark'
+      ? { line: '#32D74B', start: '#32D74B', end: '#FFFFFF', dot: '#32D74B', ctrlBg: 'rgba(31,31,33,0.82)', ctrlFg: '#FFFFFF' }
+      : { line: '#008F2E', start: '#008F2E', end: '#D64545', dot: '#3E90FF', ctrlBg: 'rgba(255,255,255,0.9)', ctrlFg: '#1A1A1A' };
+  }
+
+  function setTheme(t) {
+    theme = t === 'light' ? 'light' : 'dark';
+    if (tileLayer) tileLayer.setUrl(TILES[theme]);
+    var pane = document.querySelector('.leaflet-tile-pane');
+    if (pane) {
+      pane.style.filter = theme === 'dark' ? 'invert(1) hue-rotate(180deg) brightness(0.9)' : 'none';
+    }
+    document.getElementById('map').style.background = theme === 'dark' ? '#14171A' : '#E8EAED';
+  }
+
+  var userDot = null;
+  var userAcc = null;
+
+  function removeUserLoc() {
+    if (userDot) { map.removeLayer(userDot); userDot = null; }
+    if (userAcc) { map.removeLayer(userAcc); userAcc = null; }
+  }
+
+  function drawUserLoc(lat, lng, accuracy) {
+    removeUserLoc();
+    userDot = L.circleMarker([lat, lng], {
+      radius: 9, color: '#FFFFFF', weight: 3, fillColor: '#2D8CFF', fillOpacity: 1
+    }).addTo(map);
+    if (accuracy && accuracy > 0 && isFinite(accuracy)) {
+      userAcc = L.circle([lat, lng], {
+        radius: accuracy, color: '#2D8CFF', weight: 1,
+        fillColor: '#2D8CFF', fillOpacity: 0.15, interactive: false
+      }).addTo(map);
+    }
+  }
+
+  function clear() {
+    markers.forEach(function (m) { map.removeLayer(m); });
+    markers = [];
+    if (line) { map.removeLayer(line); line = null; }
+    if (plannedLine) { map.removeLayer(plannedLine); plannedLine = null; }
+    if (posDot) { map.removeLayer(posDot); posDot = null; }
+  }
+
+  function apply(data) {
+    var pts = data.waypoints || [];
+    if (data.theme) setTheme(data.theme);
+    mode = data.mode === 'track' ? 'track' : 'plan';
+    var c = colors();
+    clear();
+    if (data.planned && data.planned.length >= 2) {
+      var plannedLatLngs = data.planned.map(function (p) { return [p.lat, p.lng]; });
+      plannedLine = L.polyline(plannedLatLngs, {
+        color: theme === 'dark' ? '#5AA7FF' : '#1A6FD6',
+        weight: 4, opacity: 0.95, dashArray: '10 8'
+      }).addTo(map);
+    }
+    if (pts.length >= 2) {
+      var latlngs = pts.map(function (p) { return [p.lat, p.lng]; });
+      line = L.polyline(latlngs, { color: c.line, weight: 5, opacity: 1 }).addTo(map);
+    }
+    if (mode === 'plan') {
+      pts.forEach(function (p, i) {
+        var color = i === 0 ? c.start : (i === pts.length - 1 && pts.length > 1 ? c.end : c.line);
+        var icon = L.divIcon({
+          className: 'wp',
+          html: '<div class="wp-dot" style="background:' + color + '">' + (i + 1) + '</div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        });
+        markers.push(L.marker([p.lat, p.lng], { icon: icon }).addTo(map));
+      });
+    } else if (pts.length > 0) {
+      var last = pts[pts.length - 1];
+      posDot = L.circleMarker([last.lat, last.lng], {
+        radius: 8, color: '#FFFFFF', weight: 2, fillColor: c.dot, fillOpacity: 1
+      }).addTo(map);
+    }
+    if (data.fit && pts.length >= 2) {
+      map.fitBounds(latlngs, { padding: [40, 40] });
+    } else if (data.fit && pts.length === 1) {
+      map.setView([pts[0].lat, pts[0].lng], Math.max(map.getZoom(), 14));
+    }
+  }
+
+  map.on('click', function (e) {
+    if (mode !== 'plan') return;
+    var t = e.originalEvent && e.originalEvent.target;
+    if (t && t.closest && t.closest('.leaflet-bar')) return;
+    post({ type: 'tap', lat: e.latlng.lat, lng: e.latlng.lng });
+  });
+
+  function onMessage(e) {
+    try {
+      var data = JSON.parse(e.data);
+      if (data.type === 'center') {
+        map.setView([data.lat, data.lng], Math.max(map.getZoom(), 15));
+      } else if (data.type === 'user-location') {
+        drawUserLoc(data.lat, data.lng, data.accuracy);
+        if (data.center) {
+          map.setView([data.lat, data.lng], Math.max(map.getZoom(), 15));
+        }
+      } else if (data.type === 'locate-error') {
+        // handled by the app UI
+      } else {
+        apply(data);
+      }
+    } catch (err) {}
+  }
+  window.addEventListener('message', onMessage);
+  document.addEventListener('message', onMessage);
+
+  post({ type: 'ready' });
+})();
+</script>
+</body>
+</html>

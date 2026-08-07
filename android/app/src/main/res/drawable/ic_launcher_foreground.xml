@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- route line -->
+    <path
+        android:pathData="M26,72 L40,58 L52,60"
+        android:strokeColor="#4D32D74B"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <!-- start dot -->
+    <path
+        android:pathData="M26,72 m-2.8,0 a2.8,2.8 0 1,1 5.6,0 a2.8,2.8 0 1,1 -5.6,0"
+        android:fillColor="#FFFFFF" />
+    <!-- mid dot -->
+    <path
+        android:pathData="M52,60 m-2.4,0 a2.4,2.4 0 1,1 4.8,0 a2.4,2.4 0 1,1 -4.8,0"
+        android:fillColor="#32D74B" />
+    <!-- location pin -->
+    <path
+        android:pathData="M60,20 C49.5,20 41,28.5 41,39 C41,55 60,78 60,78 C60,78 79,55 79,39 C79,28.5 70.5,20 60,20 Z"
+        android:fillColor="#32D74B" />
+    <!-- pin dot -->
+    <path
+        android:pathData="M60,33 C54.6,33 50.2,37.4 50.2,42.8 C50.2,48.2 54.6,52.6 60,52.6 C65.4,52.6 69.8,48.2 69.8,42.8 C69.8,37.4 65.4,33 60,33 Z"
+        android:fillColor="#131315" />
+</vector>
