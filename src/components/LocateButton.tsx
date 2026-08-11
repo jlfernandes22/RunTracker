@@ -1,9 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 import { AppIcon } from './AppIcon';
 import { MapWebViewHandle } from './MapWebView';
+import { useM3PressScale } from '../hooks/useM3PressScale';
 
 interface Props {
   mapHandle: React.RefObject<MapWebViewHandle | null>;
@@ -14,6 +16,8 @@ export function LocateButton({ mapHandle, onError }: Props) {
   const { palette } = useTheme();
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
+  const { animatedStyle, onPressIn, onPressOut } = useM3PressScale(0.9);
+  const AnimatedPressable = useMemo(() => createAnimatedComponent(Pressable), []);
 
   const onPress = useCallback(async () => {
     if (busyRef.current) return;
@@ -28,19 +32,21 @@ export function LocateButton({ mapHandle, onError }: Props) {
   }, [mapHandle, onError]);
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel="Go to my location"
       accessibilityHint="Centers the map on your current position"
       accessibilityState={{ busy }}
       onPress={onPress}
-      style={({ pressed }) => [
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={[
         styles.button,
         {
           backgroundColor: palette.glass,
           borderColor: palette.glassBorder,
         },
-        pressed && { opacity: 0.8, transform: [{ scale: 0.96 }] },
+        animatedStyle,
       ]}
     >
       {busy ? (
@@ -48,7 +54,7 @@ export function LocateButton({ mapHandle, onError }: Props) {
       ) : (
         <AppIcon name="my-location" size={22} color={palette.text} />
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 

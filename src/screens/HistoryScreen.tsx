@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Text } from 'react-native-paper';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -22,6 +23,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { AppIcon } from '../components/AppIcon';
 import { ProgressRing } from '../components/ProgressRing';
 import { useDialog } from '../components/Dialog';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
 
 export function HistoryScreen() {
@@ -156,16 +158,13 @@ export function HistoryScreen() {
           const isThisWeek = new Date(item.start_time).getTime() >= startOfWeek(new Date()).getTime();
 
           return (
-            <Pressable
+            <Animated.View entering={FadeIn.duration(300)}>
+            <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel={`Run on ${formatDate(item.start_time)}, ${formatDistance(item.distance_m)}, ${formatDuration(item.duration_s)}`}
               onPress={() => navigation.navigate('RunDetail', { runId: item.id })}
               onLongPress={() => confirmDelete(item)}
-              style={({ pressed }) => [
-                styles.card,
-                { backgroundColor: palette.surface, borderColor: palette.border },
-                pressed && { opacity: 0.7 },
-              ]}
+              style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.border }]}
             >
               <View style={styles.cardMain}>
                 <Text variant="displaySmall" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
@@ -192,7 +191,8 @@ export function HistoryScreen() {
                 ) : null}
                 <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
               </View>
-            </Pressable>
+            </AnimatedPressable>
+            </Animated.View>
           );
         }}
       />

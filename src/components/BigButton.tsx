@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
+import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 import { AppIcon, AppIconName } from './AppIcon';
+import { useM3PressScale } from '../hooks/useM3PressScale';
 
 interface Props {
   label: string;
@@ -35,6 +37,11 @@ export function BigButton({
 }: Props) {
   const { palette } = useTheme();
   const { Button } = require('react-native-paper');
+  const AnimatedButton = useMemo(
+    () => createAnimatedComponent(Button),
+    [Button],
+  );
+  const { animatedStyle, onPressIn, onPressOut } = useM3PressScale();
 
   const mode =
     variant === 'primary' ? 'contained' : variant === 'secondary' ? 'tonal' : variant === 'danger' ? 'contained' : 'text';
@@ -42,22 +49,24 @@ export function BigButton({
   const textColor = variant === 'danger' ? palette.onError : undefined;
 
   return (
-    <Button
+    <AnimatedButton
       mode={mode}
       buttonColor={buttonColor}
       textColor={textColor}
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={disabled}
       loading={loading}
       icon={icon ? () => <AppIcon name={icon} size={20} color={disabled ? palette.onSurfaceVariant : undefined} /> : undefined}
       contentStyle={[styles.content, size === 'large' && styles.contentLarge]}
-      style={[{ borderRadius: radii.pill }, style]}
+      style={[{ borderRadius: radii.pill }, animatedStyle, style]}
       labelStyle={size === 'large' ? styles.labelLarge : undefined}
       accessibilityHint={accessibilityHint}
       accessibilityLabel={accessibilityLabel}
     >
       {label}
-    </Button>
+    </AnimatedButton>
   );
 }
 

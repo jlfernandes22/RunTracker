@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Text } from 'react-native-paper';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,6 +13,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { BigButton } from '../components/BigButton';
 import { useDialog } from '../components/Dialog';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 import { PlanStackParamList } from '../navigation/RootNavigator';
 
 export function PlanScreen() {
@@ -80,16 +81,12 @@ export function PlanScreen() {
           />
         }
         renderItem={({ item }) => (
-          <Pressable
+          <AnimatedPressable
             accessibilityRole="button"
             accessibilityLabel={`Route ${item.name}, ${formatDistance(item.distance_m)} straight-line, ${item.waypoints.length} waypoints`}
             onPress={() => navigation.navigate('RouteDetail', { routeId: item.id })}
             onLongPress={() => removeRoute(item)}
-            style={({ pressed }) => [
-              styles.card,
-              { backgroundColor: palette.surface, borderColor: palette.border, elevation: 2 },
-              pressed && { opacity: 0.7 },
-            ]}
+            style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.border }]}
           >
             <View style={{ flex: 1, gap: spacing.xs }}>
               <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
@@ -100,7 +97,7 @@ export function PlanScreen() {
               </Text>
             </View>
             <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
-          </Pressable>
+          </AnimatedPressable>
         )}
       />
     </SafeAreaView>
