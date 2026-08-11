@@ -20,6 +20,7 @@ import { LocateButton } from '../components/LocateButton';
 import { createAnimatedComponent } from 'react-native-reanimated';
 import { useDialog } from '../components/Dialog';
 import { useM3PressScale } from '../hooks/useM3PressScale';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 const IDLE_SNAP: Snapshot = {
   state: 'idle',
@@ -31,6 +32,7 @@ const IDLE_SNAP: Snapshot = {
   pointCount: 0,
   autoPaused: false,
   gpsAccuracy: null,
+  gpsAcquiring: false,
 };
 
 export function RunScreen() {
@@ -168,6 +170,7 @@ export function RunScreen() {
   const recording = snap.state === 'recording';
   const paused = snap.state === 'paused';
   const active = recording || paused;
+  const acquiring = recording && snap.gpsAcquiring;
 
   const gpsAccuracy = snap.gpsAccuracy;
   const gpsGood = gpsAccuracy != null && gpsAccuracy <= 15;
@@ -289,7 +292,18 @@ export function RunScreen() {
           </>
         ) : null}
 
-        {recording ? (
+        {recording && acquiring ? (
+          <>
+            <View style={[styles.acquireCard, { backgroundColor: palette.surfaceContainerHigh, borderColor: palette.outlineVariant }]}>
+              <LoadingIndicator size={20} />
+              <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+                Searching for GPS…
+              </Text>
+            </View>
+            <BigButton label="Finish run" icon="stop" onPress={onStop} variant="danger" size="large" disabled={saving} style={styles.bottomButton} />
+          </>
+        ) : null}
+        {recording && !acquiring ? (
           <>
             <BigButton label="Pause" icon="pause" onPress={() => session.pause()} variant="secondary" size="large" style={styles.bottomButton} />
             <BigButton label="Speak stats" icon="volume-up" onPress={onSpeak} variant="ghost" style={styles.bottomButton} />
@@ -415,6 +429,15 @@ const styles = StyleSheet.create({
   },
   bottomButton: {
     width: '100%',
+  },
+  acquireCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    minHeight: 64,
+    borderRadius: radii.pill,
+    borderWidth: 1,
   },
   hint: {
     textAlign: 'center',

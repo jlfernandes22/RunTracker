@@ -23,6 +23,8 @@ export interface Snapshot {
   pointCount: number;
   autoPaused: boolean;
   gpsAccuracy: number | null;
+  /** Recording but the clock has not started yet — waiting for the first GPS fix. */
+  gpsAcquiring: boolean;
 }
 
 interface Checkpoint {
@@ -91,6 +93,7 @@ class RunSession {
       pointCount: this.points.length,
       autoPaused: this.autoPaused,
       gpsAccuracy: this.lastAccuracy,
+      gpsAcquiring: this.state === 'recording' && this.startTs == null,
     };
   }
 
@@ -201,6 +204,20 @@ class RunSession {
     }
 
     if (this.state !== 'recording') return;
+
+    if (this.startTs == null) {
+      // No usable fix yet — wait for the first reported position before
+      // starting the clock (avoids inflating time-per-km).
+      if (accuracy == null) {
+        this.emit();
+        return;
+      }
+      this.startTs = pos.timestamp ?? Date.now();
+      this.startCheckpointing();
+      this.startStatsNotification();
+      audio.cue('start');
+    }
+
     const point: GeoPoint = {
       lat: latitude,
       lng: longitude,
@@ -305,7 +322,8 @@ class RunSession {
     this.state = 'recording';
     this.points = [];
     this.lastAccuracy = null;
-    this.startTs = Date.now();
+    // The clock starts on the first GPS fix so pre-fix time never pollutes pace.
+    this.startTs = null;
     this.pausedAccumS = 0;
     this.pausedSince = null;
     this.nextKmBoundary = KM;
@@ -328,14 +346,14 @@ class RunSession {
 
     this.ensureWatch();
     this.startTicking();
-    this.startCheckpointing();
-    this.startStatsNotification();
+    // Checkpointing, the stats notification and the start cue kick in once the
+    // first GPS fix arrives (startTs is set there).
     this.deleteCheckpoint();
-    audio.cue('start');
     this.emit();
   }
 
   async pause(): Promise<void> {
+    if (this.startTs == null) return; // nothing running yet (no GPS fix)
     this.autoPaused = false;
     this.stationaryMs = 0;
     await this.pauseInternal();
