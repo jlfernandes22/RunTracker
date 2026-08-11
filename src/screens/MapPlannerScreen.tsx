@@ -106,23 +106,27 @@ export function MapPlannerScreen() {
         </View>
 
         <View style={styles.actions}>
-          <TextInput
-            accessibilityLabel="Route name"
-            label="Route name"
-            placeholder="e.g. Morning 5k"
-            value={name}
-            onChangeText={setName}
-            mode="outlined"
-            outlineColor={palette.outlineVariant}
-            activeOutlineColor={palette.primary}
-            style={styles.input}
-          />
-          <BigButton
-            label="Save Route"
-            onPress={save}
-            disabled={waypoints.length < 2}
-            style={{ flex: 1 }}
-          />
+          <View style={styles.inputWrap}>
+            <TextInput
+              accessibilityLabel="Route name"
+              label="Route name"
+              placeholder="e.g. Morning 5k"
+              value={name}
+              onChangeText={setName}
+              mode="outlined"
+              outlineColor={palette.outlineVariant}
+              activeOutlineColor={palette.primary}
+              style={styles.input}
+            />
+          </View>
+          <View style={styles.buttonWrap}>
+            <BigButton
+              label="Save Route"
+              onPress={save}
+              disabled={waypoints.length < 2}
+              style={{ width: '100%' }}
+            />
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -153,7 +157,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
-    flex: 2,
     backgroundColor: 'transparent',
+  },
+  inputWrap: {
+    flex: 2,
+  },
+  buttonWrap: {
+    flex: 1,
   },
 });
