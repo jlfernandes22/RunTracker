@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Text } from 'react-native-paper';
-import { Modal, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Text, TextInput } from 'react-native-paper';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -187,15 +187,15 @@ export function RunDetailScreen() {
             </Text>
             <TextInput
               accessibilityLabel="Run notes"
+              label="Run notes"
               value={notesDraft}
               onChangeText={setNotesDraft}
               multiline
               placeholder="e.g. Felt great, strong finish"
-              placeholderTextColor={palette.textMuted}
-              style={[
-                styles.notesInput,
-                { color: palette.text, borderColor: palette.border, backgroundColor: palette.surfaceVariant },
-              ]}
+              mode="outlined"
+              outlineColor={palette.outlineVariant}
+              activeOutlineColor={palette.primary}
+              style={styles.notesInput}
             />
             <View style={styles.modalActions}>
               <BigButton label="Cancel" onPress={() => setShowNotesEditor(false)} variant="ghost" style={{ flex: 1 }} />
@@ -301,10 +301,7 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     minHeight: 90,
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: spacing.md,
-    textAlignVertical: 'top',
+    backgroundColor: 'transparent',
   },
   modalActions: {
     flexDirection: 'row',

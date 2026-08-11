@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text } from 'react-native-paper';
-import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
+import { List, Switch } from 'react-native-paper';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 
@@ -12,33 +12,28 @@ interface SettingRowProps {
   style?: ViewStyle;
 }
 
-export function SettingRow({ label, value, onPress, hint, style }: SettingRowProps) {
+export function SettingRow({ label, onPress, hint, style }: SettingRowProps) {
   const { palette } = useTheme();
-
   return (
-    <Pressable
-      accessibilityRole="button"
+    <List.Item
+      title={label}
+      description={hint}
+      onPress={onPress}
       accessibilityLabel={label}
       accessibilityHint={hint}
-      onPress={onPress}
-      style={({ pressed }) => [
+      titleStyle={{ color: palette.text }}
+      descriptionStyle={{ color: palette.onSurfaceVariant }}
+      right={() => (
+        <View style={styles.rowRight}>
+          <List.Icon icon="chevron-right" color={palette.onSurfaceVariant} />
+        </View>
+      )}
+      style={[
         styles.row,
-        styles.rowShadow,
-        { backgroundColor: palette.surface, borderColor: palette.border },
-        pressed && { opacity: 0.7 },
+        { backgroundColor: palette.surface, borderColor: palette.outlineVariant, borderRadius: radii.md },
         style,
       ]}
-    >
-      <View style={{ flex: 1 }}>
-        <Text variant="bodyLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
-          {label}
-        </Text>
-      </View>
-      <Text variant="bodyMedium" style={{ color: palette.textMuted, marginRight: spacing.sm }} maxFontSizeMultiplier={2}>
-        {value}
-      </Text>
-      <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
-    </Pressable>
+    />
   );
 }
 
@@ -51,85 +46,51 @@ interface ToggleRowProps {
 
 export function ToggleRow({ label, value, onValueChange, hint }: ToggleRowProps) {
   const { palette } = useTheme();
-
   return (
-    <Pressable
-      accessibilityRole="switch"
-      accessibilityState={{ checked: value }}      accessibilityLabel={label}
-      accessibilityHint={hint}
+    <List.Item
+      title={label}
+      description={hint}
       onPress={() => onValueChange(!value)}
-      style={({ pressed }) => [
-        styles.row,
-        styles.rowShadow,
-        { backgroundColor: palette.surface, borderColor: palette.border },
-        pressed && { opacity: 0.7 },
-      ]}
-    >
-      <Text variant="bodyLarge" style={[styles.flex, { color: palette.text }]} maxFontSizeMultiplier={2}>
-        {label}
-      </Text>
-      <View
-        style={[
-          styles.track,
-          {
-            backgroundColor: value ? palette.primary : palette.surfaceVariant,
-            borderColor: value ? palette.primary : palette.border,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.thumb,
-            { backgroundColor: value ? palette.onPrimary : palette.textMuted },
-            value && { alignSelf: 'flex-end' },
-          ]}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      titleStyle={{ color: palette.text }}
+      descriptionStyle={{ color: palette.onSurfaceVariant }}
+      right={() => (
+        <Switch
+          value={value}
+          onValueChange={onValueChange}
+          color={palette.primary}
+          accessibilityLabel={`Toggle ${label}`}
         />
-      </View>
-    </Pressable>
+      )}
+      style={[
+        styles.row,
+        { backgroundColor: palette.surface, borderColor: palette.outlineVariant, borderRadius: radii.md },
+      ]}
+    />
   );
 }
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   const { palette } = useTheme();
   return (
-    <Text variant="labelMedium" style={{ color: palette.textMuted, fontWeight: '700' }} maxFontSizeMultiplier={2}>
-      {children}
-    </Text>
+    <List.Subheader style={[styles.section, { color: palette.onSurfaceVariant }]}>{children}</List.Subheader>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
     minHeight: 56,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
-    gap: spacing.sm,
   },
-  rowShadow: {
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  track: {
-    width: 52,
-    height: 32,
-    borderRadius: 16,
-    padding: 2,
-    borderWidth: 2,
+  rowRight: {
     justifyContent: 'center',
   },
-  thumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  section: {
+    paddingHorizontal: spacing.lg - 8,
+    fontWeight: '700',
   },
 });

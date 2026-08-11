@@ -1,9 +1,8 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { Text } from 'react-native-paper';
-import { Modal, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Dialog as PaperDialog, Portal, Text } from 'react-native-paper';
 import { useTheme } from '../theme/ThemeContext';
-import { radii, spacing } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
-
+import { spacing } from '../theme/colors';
 import { BigButton } from './BigButton';
 import { AppIconName } from './AppIcon';
 
@@ -43,25 +42,23 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
   return (
     <DialogContext.Provider value={{ alert }}>
       {children}
-      <Modal visible={options != null} transparent animationType="fade" onRequestClose={close}>
-        <View style={styles.backdrop}>
+      <Portal>
+        <PaperDialog visible={options != null} onDismiss={close} style={styles.dialog}>
           {options ? (
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: palette.surface, borderColor: palette.border },
-              ]}
-              accessibilityViewIsModal
-            >
-              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
-                {options.title}
-              </Text>
-              {options.message ? (
-                <Text variant="bodyLarge" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                  {options.message}
+            <>
+              <PaperDialog.Title>
+                <Text variant="titleLarge" style={{ color: palette.text }}>
+                  {options.title}
                 </Text>
+              </PaperDialog.Title>
+              {options.message ? (
+                <PaperDialog.Content>
+                  <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }}>
+                    {options.message}
+                  </Text>
+                </PaperDialog.Content>
               ) : null}
-              <View style={styles.buttons}>
+              <PaperDialog.Actions style={styles.actions}>
                 {options.buttons.map((b, i) => (
                   <BigButton
                     key={i}
@@ -75,30 +72,22 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
                     style={{ width: '100%' }}
                   />
                 ))}
-              </View>
-            </View>
+              </PaperDialog.Actions>
+            </>
           ) : null}
-        </View>
-      </Modal>
+        </PaperDialog>
+      </Portal>
     </DialogContext.Provider>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: overlayTokens.scrimOverlay,
-    justifyContent: 'center',
-    padding: spacing.xl,
+  dialog: {
+    borderRadius: 28,
   },
-  card: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-  buttons: {
+  actions: {
+    padding: spacing.md,
+    flexDirection: 'column',
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
 });

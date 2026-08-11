@@ -1,9 +1,7 @@
 import React from 'react';
-import { Text } from 'react-native-paper';
-import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
-import { radii, spacing } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
-
+import { radii, spacing } from '../theme/colors';
 import { AppIcon, AppIconName } from './AppIcon';
 
 interface Props {
@@ -16,8 +14,13 @@ interface Props {
   style?: ViewStyle;
   accessibilityHint?: string;
   accessibilityLabel?: string;
+  loading?: boolean;
 }
 
+/**
+ * App button primitive built on Paper's `Button` (MD3 modes):
+ * primary → contained, secondary → tonal, danger → contained(error), ghost → text.
+ */
 export function BigButton({
   label,
   onPress,
@@ -28,79 +31,45 @@ export function BigButton({
   style,
   accessibilityHint,
   accessibilityLabel,
+  loading,
 }: Props) {
   const { palette } = useTheme();
+  const { Button } = require('react-native-paper');
 
-  const bg =
-    variant === 'primary'
-      ? palette.primary
-      : variant === 'danger'
-        ? palette.danger
-        : palette.surfaceVariant;
-  const fg =
-    variant === 'primary'
-      ? palette.onPrimary
-      : variant === 'danger'
-        ? overlayTokens.onDanger
-        : palette.text;
+  const mode =
+    variant === 'primary' ? 'contained' : variant === 'secondary' ? 'tonal' : variant === 'danger' ? 'contained' : 'text';
+  const buttonColor = variant === 'danger' ? palette.error : undefined;
+  const textColor = variant === 'danger' ? palette.onError : undefined;
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityHint={accessibilityHint}
-      disabled={disabled}
+    <Button
+      mode={mode}
+      buttonColor={buttonColor}
+      textColor={textColor}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.base,
-        size === 'large' && styles.large,
-        variant === 'ghost' && styles.ghost,
-        { backgroundColor: bg, borderColor: variant === 'ghost' || variant === 'secondary' ? palette.border : 'transparent' },
-        pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
-        disabled && { opacity: 0.4 },
-        style,
-      ]}
+      disabled={disabled}
+      loading={loading}
+      icon={icon ? () => <AppIcon name={icon} size={20} color={disabled ? palette.onSurfaceVariant : undefined} /> : undefined}
+      contentStyle={[styles.content, size === 'large' && styles.contentLarge]}
+      style={[{ borderRadius: radii.pill }, style]}
+      labelStyle={size === 'large' ? styles.labelLarge : undefined}
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel}
     >
-      <View style={styles.inner}>
-        {icon ? <AppIcon name={icon} size={20} color={disabled ? palette.textMuted : fg} /> : null}
-        <Text
-          variant="labelLarge"
-          style={[
-            { color: fg },
-            size === 'large' && { fontWeight: '700' },
-            disabled && { color: palette.textMuted },
-          ]}
-          maxFontSizeMultiplier={2}
-        >
-          {label}
-        </Text>
-      </View>
-    </Pressable>
+      {label}
+    </Button>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
+  content: {
     minHeight: 52,
-    minWidth: 48,
-    borderRadius: radii.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
   },
-  large: {
+  contentLarge: {
     minHeight: 64,
-    minWidth: 64,
-    borderRadius: radii.pill,
   },
-  ghost: {
-    borderWidth: 1,
-  },
-  inner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  labelLarge: {
+    fontWeight: '700',
   },
 });

@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Text } from 'react-native-paper';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Text, TextInput } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
@@ -105,14 +105,14 @@ export function MapPlannerScreen() {
         <View style={styles.actions}>
           <TextInput
             accessibilityLabel="Route name"
-            placeholder="Route name (e.g. Morning 5k)"
-            placeholderTextColor={palette.textMuted}
+            label="Route name"
+            placeholder="e.g. Morning 5k"
             value={name}
             onChangeText={setName}
-            style={[
-              styles.input,
-              { color: palette.text, borderColor: palette.glassBorder, backgroundColor: palette.surfaceVariant },
-            ]}
+            mode="outlined"
+            outlineColor={palette.outlineVariant}
+            activeOutlineColor={palette.primary}
+            style={styles.input}
           />
           <BigButton
             label="Save Route"
@@ -151,9 +151,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 2,
-    minHeight: 52,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: 'transparent',
   },
 });

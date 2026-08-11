@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Text } from 'react-native-paper';
+import { Chip, Text } from 'react-native-paper';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing, radii } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
@@ -130,14 +130,15 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
       </View>
       <View style={styles.dayRow}>
         {DAY_NAMES.map((d, i) => (
-          <BigButton
+          <Chip
             key={d}
-            label={d}
-            variant={days.includes(i) ? 'primary' : 'secondary'}
+            selected={days.includes(i)}
             onPress={() => toggleDay(i)}
             accessibilityHint={days.includes(i) ? `Remove reminder for ${d}` : `Add reminder for ${d}`}
-            style={{ flex: 1, paddingHorizontal: 0, minHeight: 40, minWidth: 42 }}
-          />
+            style={styles.dayChip}
+          >
+            {d}
+          </Chip>
         ))}
       </View>
 
@@ -244,6 +245,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.xs,
+  },
+  dayChip: {
+    minWidth: 44,
   },
   timeRow: {
     flexDirection: 'row',
