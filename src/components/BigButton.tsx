@@ -58,7 +58,7 @@ export function BigButton({
   // container fill so they stay visible (MD3 text-mode is transparent).
   const ghostStyle =
     variant === 'ghost'
-      ? { backgroundColor: palette.surfaceContainerHigh, borderColor: palette.outlineVariant }
+      ? { backgroundColor: palette.surfaceContainerHighest, borderColor: palette.outlineVariant }
       : undefined;
 
   return (
