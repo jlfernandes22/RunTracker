@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Chip, Text } from 'react-native-paper';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing, radii } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
 
 import { BigButton } from './BigButton';
 import { AppIcon } from './AppIcon';
+import { useM3PressScale } from '../hooks/useM3PressScale';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MINUTE_STEP = 5;
@@ -48,6 +50,7 @@ function StepButton({
 }) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { animatedStyle, onPressIn: scaleIn, onPressOut: scaleOut } = useM3PressScale(0.92);
 
   const clear = () => {
     if (timeoutRef.current) {
@@ -69,19 +72,23 @@ function StepButton({
     }, 700);
   };
 
+  const StepPressable = React.useMemo(() => createAnimatedComponent(Pressable), []);
   return (
-    <Pressable
+    <StepPressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPressIn={begin}
-      onPressOut={clear}
-      style={({ pressed }) => [
-        styles.stepButton,
-        pressed && { backgroundColor: overlayTokens.pressOverlay },
-      ]}
+      onPressIn={() => {
+        scaleIn();
+        begin();
+      }}
+      onPressOut={() => {
+        scaleOut();
+        clear();
+      }}
+      style={[styles.stepButton, animatedStyle]}
     >
       <AppIcon name={dir === 1 ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={30} color={color} />
-    </Pressable>
+    </StepPressable>
   );
 }
 

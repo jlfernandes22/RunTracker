@@ -188,8 +188,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const status = isDark
         ? { success: statusColors.successOnDark, warning: statusColors.warningOnDark }
         : { success: statusColors.success, warning: statusColors.warning };
+      const theme = isDark ? highContrastDarkTheme : highContrastLightTheme;
       return {
-        paperTheme: isDark ? highContrastDarkTheme : highContrastLightTheme,
+        paperTheme: settings.reduceMotion
+          ? { ...theme, animation: { ...theme.animation, scale: 0 } }
+          : theme,
         palette: buildPalette(colors, status),
       };
     }
@@ -198,11 +201,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const status = isDark
       ? { success: statusColors.successOnDark, warning: statusColors.warningOnDark }
       : { success: statusColors.success, warning: statusColors.warning };
+    const theme = isDark ? darkTheme : lightTheme;
     return {
-      paperTheme: isDark ? darkTheme : lightTheme,
+      paperTheme: settings.reduceMotion
+        ? { ...theme, animation: { ...theme.animation, scale: 0 } }
+        : theme,
       palette: buildPalette(colors, status),
     };
-  }, [isDark, settings.highContrast]);
+  }, [isDark, settings.highContrast, settings.reduceMotion]);
 
   const typography = useMemo(() => buildTypography(settings.fontScale), [settings.fontScale]);
 

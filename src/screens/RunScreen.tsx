@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native-paper';
-import { Modal, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
@@ -17,8 +17,9 @@ import { BigButton } from '../components/BigButton';
 import { MapWebView, MapWebViewHandle } from '../components/MapWebView';
 import { AppIcon } from '../components/AppIcon';
 import { LocateButton } from '../components/LocateButton';
-import { Pressable } from 'react-native';
+import { createAnimatedComponent } from 'react-native-reanimated';
 import { useDialog } from '../components/Dialog';
+import { useM3PressScale } from '../hooks/useM3PressScale';
 
 const IDLE_SNAP: Snapshot = {
   state: 'idle',
@@ -40,6 +41,8 @@ export function RunScreen() {
   const route = useRoute<RouteProp<RootTabParamList, 'Run'>>();
   const dialog = useDialog();
   const mapHandle = useRef<MapWebViewHandle>(null);
+  const { animatedStyle, onPressIn, onPressOut } = useM3PressScale(0.9);
+  const AnimatedPressable = useMemo(() => createAnimatedComponent(Pressable), []);
   const [plannedRoute, setPlannedRoute] = useState<SavedRoute | null>(null);
   const [snap, setSnap] = useState<Snapshot>(IDLE_SNAP);
   const [checkpointVisible, setCheckpointVisible] = useState(false);
@@ -191,14 +194,17 @@ export function RunScreen() {
             <Text variant="labelMedium" style={{ color: palette.text, flex: 1 }} numberOfLines={1} maxFontSizeMultiplier={2}>
               {plannedRoute.name}
             </Text>
-            <Pressable
+            <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel="Clear planned route"
               onPress={() => setPlannedRoute(null)}
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
               hitSlop={8}
+              style={animatedStyle}
             >
               <AppIcon name="close" size={16} color={palette.textMuted} />
-            </Pressable>
+            </AnimatedPressable>
           </View>
         ) : null}
         <View style={styles.metricRow}>

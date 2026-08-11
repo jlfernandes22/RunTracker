@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Text, TextInput } from 'react-native-paper';
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
@@ -64,7 +64,10 @@ export function MapPlannerScreen() {
   }, [name, waypoints, distance, navigation, dialog]);
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: palette.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <View style={{ flex: 1 }}>
         <View style={StyleSheet.absoluteFill}>
           <MapWebView
@@ -122,7 +125,7 @@ export function MapPlannerScreen() {
           />
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

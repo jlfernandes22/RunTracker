@@ -15,17 +15,27 @@ import { DialogProvider } from './src/components/Dialog';
 import { setupChannels } from './src/services/notifications';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 
+/**
+ * PaperProvider must sit ABOVE every Paper component (DialogProvider hosts a
+ * Portal), so this wrapper reads the MD3 theme from ThemeContext and provides
+ * it to both the main app and the onboarding branch.
+ */
+function ThemedPaperProvider({ children }: { children: React.ReactNode }) {
+  const { paperTheme } = useTheme();
+  return <PaperProvider theme={paperTheme}>{children}</PaperProvider>;
+}
+
 function ThemedApp() {
-  const { palette, paperTheme } = useTheme();
+  const { palette } = useTheme();
   const r = parseInt(palette.background.slice(1, 3), 16);
   const g = parseInt(palette.background.slice(3, 5), 16);
   const b = parseInt(palette.background.slice(5, 7), 16);
   const isDarkBackground = 0.3 * r + 0.6 * g + 0.1 * b < 128;
   return (
-    <PaperProvider theme={paperTheme}>
+    <>
       <StatusBar barStyle={isDarkBackground ? 'light-content' : 'dark-content'} />
       <RootNavigator />
-    </PaperProvider>
+    </>
   );
 }
 
@@ -56,13 +66,15 @@ function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <DialogProvider>
-            {onboardingDone ? (
-              <ThemedApp />
-            ) : (
-              <OnboardingScreen onDone={() => setOnboardingDone(true)} />
-            )}
-          </DialogProvider>
+          <ThemedPaperProvider>
+            <DialogProvider>
+              {onboardingDone ? (
+                <ThemedApp />
+              ) : (
+                <OnboardingScreen onDone={() => setOnboardingDone(true)} />
+              )}
+            </DialogProvider>
+          </ThemedPaperProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
