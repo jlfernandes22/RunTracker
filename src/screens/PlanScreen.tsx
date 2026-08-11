@@ -14,6 +14,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { BigButton } from '../components/BigButton';
 import { useDialog } from '../components/Dialog';
 import { AnimatedPressable } from '../components/AnimatedPressable';
+import { ListSkeleton } from '../components/Skeleton';
 import { PlanStackParamList } from '../navigation/RootNavigator';
 
 export function PlanScreen() {
@@ -54,7 +55,16 @@ export function PlanScreen() {
   );
 
 
-  if (routes === null) return null;
+  if (routes === null) {
+    return (
+      <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: palette.background }]}>
+        <ScreenHeader title="Plan" />
+        <View style={{ padding: spacing.lg }}>
+          <ListSkeleton rows={4} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: palette.background }]}>

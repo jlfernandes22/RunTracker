@@ -14,6 +14,7 @@ import { BigButton } from '../components/BigButton';
 import { useDialog } from '../components/Dialog';
 import { audio } from '../services/AudioCue';
 import { toGpx } from '../services/backup';
+import { Skeleton } from '../components/Skeleton';
 import { SavedRoute } from '../types';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
 
@@ -40,7 +41,19 @@ export function RunDetailScreen() {
     });
   }, [route.params.runId]);
 
-  if (!run) return null;
+  if (!run) {
+    return (
+      <View style={[styles.container, { backgroundColor: palette.background, padding: spacing.lg, gap: spacing.md }]}>
+        <Skeleton width="60%" height={24} />
+        <Skeleton width="100%" height={96} />
+        <Skeleton width="100%" height={280} radius={16} />
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <Skeleton style={{ flex: 1 }} height={88} />
+          <Skeleton style={{ flex: 1 }} height={88} />
+        </View>
+      </View>
+    );
+  }
 
   const movingS = run.duration_s - (run.paused_s ?? 0);
   const pace = movingS > 0 && run.distance_m > 0 ? movingS / (run.distance_m / 1000) : null;

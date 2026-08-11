@@ -24,6 +24,7 @@ import { AppIcon } from '../components/AppIcon';
 import { ProgressRing } from '../components/ProgressRing';
 import { useDialog } from '../components/Dialog';
 import { AnimatedPressable } from '../components/AnimatedPressable';
+import { ListSkeleton } from '../components/Skeleton';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
 
 export function HistoryScreen() {
@@ -72,7 +73,16 @@ export function HistoryScreen() {
     [dialog, load],
   );
 
-  if (runs === null) return null;
+  if (runs === null) {
+    return (
+      <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: palette.background }]}>
+        <ScreenHeader title="History" />
+        <View style={styles.listContent}>
+          <ListSkeleton rows={6} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const sorted = [...runs].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
   const ringProgress = Math.min(1, weekKm / 30);

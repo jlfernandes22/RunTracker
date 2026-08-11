@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 import { AppIcon } from './AppIcon';
 import { MapWebViewHandle } from './MapWebView';
 import { useM3PressScale } from '../hooks/useM3PressScale';
+import { LoadingIndicator } from './LoadingIndicator';
 
 interface Props {
   mapHandle: React.RefObject<MapWebViewHandle | null>;
@@ -50,7 +51,7 @@ export function LocateButton({ mapHandle, onError }: Props) {
       ]}
     >
       {busy ? (
-        <ActivityIndicator size="small" color={palette.primary} />
+        <LoadingIndicator size={22} color={palette.primary} />
       ) : (
         <AppIcon name="my-location" size={22} color={palette.text} />
       )}
