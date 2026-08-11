@@ -81,6 +81,7 @@ const KEY_POINTS = [1, 2, 3, 4, 5, 6, 1].map((s) => {
 });
 
 function buildPathFromInterp(points: [number, number][]): string {
+  'worklet';
   const P = points.concat(points.slice(0, 3));
   const d: string[] = [];
   for (let i = 1; i < points.length + 1; i++) {
