@@ -88,7 +88,7 @@ export function MapPlannerScreen() {
 
       <View style={[styles.panel, { backgroundColor: palette.glass, borderColor: palette.glassBorder, marginBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.statsRow}>
-          <View style={{ flex: 1 }}>
+          <View style={styles.statsText}>
             <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               Tap the map to add waypoints
             </Text>
@@ -100,8 +100,8 @@ export function MapPlannerScreen() {
             </Text>
           </View>
           <View style={styles.pointButtons}>
-            <BigButton label="Undo" icon="undo" onPress={undo} variant="secondary" accessibilityLabel="Undo last point" disabled={waypoints.length === 0} />
-            <BigButton label="Clear" icon="close" onPress={() => setWaypoints([])} variant="secondary" accessibilityLabel="Clear all points" disabled={waypoints.length === 0} />
+            <BigButton label="Undo" icon="undo" onPress={undo} variant="secondary" compact accessibilityLabel="Undo last point" disabled={waypoints.length === 0} />
+            <BigButton label="Clear" icon="close" onPress={() => setWaypoints([])} variant="secondary" compact accessibilityLabel="Clear all points" disabled={waypoints.length === 0} />
           </View>
         </View>
 
@@ -147,9 +147,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  statsText: {
+    flex: 3,
+    minWidth: 0,
+    flexShrink: 1,
+  },
   pointButtons: {
     flexDirection: 'row',
     gap: spacing.sm,
+    flexShrink: 0,
   },
   actions: {
     flexDirection: 'row',

@@ -17,6 +17,8 @@ interface Props {
   accessibilityHint?: string;
   accessibilityLabel?: string;
   loading?: boolean;
+  /** Compact (min-width auto) — for buttons in tight rows. */
+  compact?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function BigButton({
   accessibilityHint,
   accessibilityLabel,
   loading,
+  compact,
 }: Props) {
   const { palette } = useTheme();
   const { Button } = require('react-native-paper');
@@ -58,8 +61,9 @@ export function BigButton({
       onPressOut={onPressOut}
       disabled={disabled}
       loading={loading}
+      compact={compact}
       icon={icon ? () => <AppIcon name={icon} size={20} color={disabled ? palette.onSurfaceVariant : undefined} /> : undefined}
-      contentStyle={[styles.content, size === 'large' && styles.contentLarge]}
+      contentStyle={[styles.content, compact && styles.contentCompact, size === 'large' && styles.contentLarge]}
       style={[{ borderRadius: radii.pill }, animatedStyle, style]}
       labelStyle={size === 'large' ? styles.labelLarge : undefined}
       accessibilityHint={accessibilityHint}
@@ -74,6 +78,9 @@ const styles = StyleSheet.create({
   content: {
     minHeight: 52,
     paddingHorizontal: spacing.lg,
+  },
+  contentCompact: {
+    paddingHorizontal: spacing.md,
   },
   contentLarge: {
     minHeight: 64,
