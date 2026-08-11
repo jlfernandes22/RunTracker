@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { spacing } from '../theme/colors';
@@ -20,7 +21,7 @@ import { setSoundEnabled, setVibrationEnabled } from '../services/AudioCue';
 import { MergeStrategy } from '../types';
 
 export function SettingsScreen() {
-  const { palette, typography, settings, setHighContrast, setReduceMotion, setFontScale } = useTheme();
+  const { palette, settings, setHighContrast, setReduceMotion, setFontScale } = useTheme();
   const dialog = useDialog();
   const [prefs, setPrefs] = useState<NotificationPrefs>({ ...DEFAULT_PREFS });
   const [autoPause, setAutoPause] = useState(true);
@@ -150,7 +151,7 @@ export function SettingsScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={[typography.headline, styles.screenTitle, { color: palette.text }]} maxFontSizeMultiplier={2} accessibilityRole="header">
+      <Text variant="headlineSmall" style={[styles.screenTitle, { color: palette.text }]} maxFontSizeMultiplier={2} accessibilityRole="header">
         Settings
       </Text>
 
@@ -298,17 +299,12 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
     gap: spacing.md,
   },
-  screenTitle: {
-    fontSize: 28,
-  },
+  screenTitle: {},
   group: {
     gap: spacing.sm,
   },
-  note: {
-    fontSize: 13,
-  },
+  note: {},
   about: {
-    fontSize: 14,
     lineHeight: 20,
   },
 });

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -24,7 +25,7 @@ import { useDialog } from '../components/Dialog';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
 
 export function HistoryScreen() {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<HistoryStackParamList>>();
   const dialog = useDialog();
   const [runs, setRuns] = useState<Run[] | null>(null);
@@ -81,7 +82,7 @@ export function HistoryScreen() {
         {runs.length > 0 ? (
           <View style={[styles.chip, { backgroundColor: palette.surface, borderColor: palette.border }]}>
             <AppIcon name="calendar-today" size={13} color={palette.textMuted} />
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               {weekCount} this week
             </Text>
           </View>
@@ -99,18 +100,18 @@ export function HistoryScreen() {
               <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
                 <ProgressRing progress={ringProgress} color={palette.accent} trackColor={palette.surfaceVariant}>
                   <View style={styles.ringCenter}>
-                    <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                    <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
                       {weekKm.toFixed(1)}
                     </Text>
-                    <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                    <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                       km
                     </Text>
                   </View>
                 </ProgressRing>
-                <Text style={[typography.label, styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
                   Weekly Distance
                 </Text>
-                <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                   {weekKm >= 30 ? 'Goal reached!' : `${(30 - weekKm).toFixed(1)} km to goal`}
                 </Text>
               </View>
@@ -119,18 +120,18 @@ export function HistoryScreen() {
                 <ProgressRing progress={streakProgress} color={palette.primary} trackColor={palette.surfaceVariant}>
                   <View style={styles.ringCenter}>
                     <AppIcon name="local-fire-department" size={22} color={palette.primary} />
-                    <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                    <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
                       {streakDays}
                     </Text>
-                    <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                    <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                       days
                     </Text>
                   </View>
                 </ProgressRing>
-                <Text style={[typography.label, styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
                   Current Streak
                 </Text>
-                <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                   {streakDays > 0 ? 'Keep the momentum!' : 'Go for a run today'}
                 </Text>
               </View>
@@ -167,13 +168,13 @@ export function HistoryScreen() {
               ]}
             >
               <View style={styles.cardMain}>
-                <Text style={[typography.metricMobile, { color: palette.text }]} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                <Text variant="displaySmall" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
                   {formatDistance(item.distance_m)}
                 </Text>
-                <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                   {formatDate(item.start_time)} · {formatDuration(item.duration_s)}
                 </Text>
-                <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                   {formatPace(pace)}
                 </Text>
               </View>
@@ -181,7 +182,7 @@ export function HistoryScreen() {
                 {improved ? (
                   <View style={[styles.badge, { backgroundColor: palette.primary }]}>
                     <AppIcon name="trending-up" size={12} color={palette.onPrimary} />
-                    <Text style={[typography.label, { color: palette.onPrimary, fontSize: 11 }]} maxFontSizeMultiplier={2}>
+                    <Text variant="labelSmall" style={{ color: palette.onPrimary }} maxFontSizeMultiplier={2}>
                       Pace improved
                     </Text>
                   </View>
@@ -189,7 +190,7 @@ export function HistoryScreen() {
                 {isThisWeek ? (
                   <View style={[styles.weekDot, { backgroundColor: palette.primary }]} accessibilityLabel="This week" />
                 ) : null}
-                <Text style={{ color: palette.textMuted, fontSize: 18 }}>›</Text>
+                <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
               </View>
             </Pressable>
           );

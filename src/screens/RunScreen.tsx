@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Modal, StyleSheet, View } from 'react-native';
 import { useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
@@ -31,7 +32,7 @@ const IDLE_SNAP: Snapshot = {
 };
 
 export function RunScreen() {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const mapTheme = useMapTheme();
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
@@ -186,7 +187,7 @@ export function RunScreen() {
         {plannedRoute ? (
           <View style={[styles.routeBanner, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
             <AppIcon name="route" size={15} color={palette.primary} />
-            <Text style={[typography.label, { color: palette.text, flex: 1 }]} numberOfLines={1} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.text, flex: 1 }} numberOfLines={1} maxFontSizeMultiplier={2}>
               {plannedRoute.name}
             </Text>
             <Pressable
@@ -201,18 +202,18 @@ export function RunScreen() {
         ) : null}
         <View style={styles.metricRow}>
           <View style={[styles.glassCard, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               Distance
             </Text>
-            <Text style={[typography.metric, { color: palette.text }]} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
+            <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
               {formatDistance(snap.distanceM)}
             </Text>
           </View>
           <View style={[styles.glassCard, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               Time
             </Text>
-            <Text style={[typography.metric, { color: palette.text }]} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
+            <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
               {formatDuration(snap.elapsedS)}
             </Text>
           </View>
@@ -221,18 +222,18 @@ export function RunScreen() {
         {active ? (
           <View style={styles.metricRow}>
             <View style={[styles.glassCardSmall, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-              <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+              <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                 Pace
               </Text>
-              <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
                 {formatPace(snap.currentPaceS)}
               </Text>
             </View>
             <View style={[styles.glassCardSmall, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-              <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+              <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                 Last km
               </Text>
-              <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
                 {snap.lastKmDurationS != null ? formatPace(snap.lastKmDurationS) : '--:--'}
               </Text>
             </View>
@@ -247,13 +248,13 @@ export function RunScreen() {
               <>
                 <View style={[styles.glassPill, { backgroundColor: palette.glass, borderColor: gpsColor }]}>
                   <AppIcon name="gps-fixed" size={14} color={gpsColor} />
-                  <Text style={[typography.label, { color: gpsColor }]} maxFontSizeMultiplier={2}>
+                  <Text variant="labelMedium" style={{ color: gpsColor }} maxFontSizeMultiplier={2}>
                     {gpsAccuracy != null ? `GPS ±${Math.round(gpsAccuracy)} m` : 'Searching…'}
                   </Text>
                 </View>
                 {snap.autoPaused ? (
                   <View style={[styles.glassPill, { backgroundColor: palette.glass, borderColor: palette.warning }]}>
-                    <Text style={[typography.label, { color: palette.warning }]} maxFontSizeMultiplier={2}>
+                    <Text variant="labelMedium" style={{ color: palette.warning }} maxFontSizeMultiplier={2}>
                       Auto-paused
                     </Text>
                   </View>
@@ -275,7 +276,7 @@ export function RunScreen() {
               accessibilityHint="Begins tracking your run with GPS"
               style={styles.bottomButton}
             />
-            <Text style={[typography.label, styles.hint, { color: palette.textMuted }]}>
+            <Text variant="labelMedium" style={[styles.hint, { color: palette.textMuted }]}>
               Recorded entirely on your device
             </Text>
           </>
@@ -306,10 +307,10 @@ export function RunScreen() {
       >
         <View style={styles.modalBackdrop}>
           <View style={[styles.modal, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
               Unfinished run found
             </Text>
-            <Text style={[typography.body, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               You had a run in progress. Resume it or discard the recording.
             </Text>
             <BigButton label="Resume run" onPress={resumeCheckpoint} style={{ width: '100%' }} />

@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
@@ -14,7 +15,7 @@ import { useDialog } from '../components/Dialog';
 import { audio } from '../services/AudioCue';
 
 export function MapPlannerScreen() {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const mapTheme = useMapTheme();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -85,13 +86,13 @@ export function MapPlannerScreen() {
       <View style={[styles.panel, { backgroundColor: palette.glass, borderColor: palette.glassBorder, marginBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.statsRow}>
           <View style={{ flex: 1 }}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               Tap the map to add waypoints
             </Text>
-            <Text style={[typography.metric, { color: palette.text }]} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+            <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
               {formatDistance(distance())}
             </Text>
-            <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               {waypoints.length} point{waypoints.length === 1 ? '' : 's'} · straight-line only
             </Text>
           </View>
@@ -154,6 +155,5 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
-    fontSize: 15,
   },
 });

@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing, radii } from '../theme/colors';
@@ -46,7 +47,7 @@ const FEATURES: Feature[] = [
 ];
 
 export function OnboardingScreen({ onDone }: { onDone: () => void }) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const [step, setStep] = useState(0);
   const [sound, setSound] = useState(true);
   const [vibration, setVibration] = useState(true);
@@ -103,10 +104,10 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
             <View style={[styles.logoCircle, { backgroundColor: palette.surface, borderColor: palette.border }]}>
               <AppIcon name="my-location" size={56} color={palette.primary} />
             </View>
-            <Text style={[typography.headline, { color: palette.text, fontSize: 30, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="headlineLarge" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
               Welcome to RunTracker
             </Text>
-            <Text style={[typography.body, styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
               Your offline running companion. Let's get you set up in under a minute.
             </Text>
             <View style={styles.featureList}>
@@ -116,10 +117,10 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
                     <AppIcon name={f.icon} size={20} color={palette.primary} />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={[typography.body, { color: palette.text, fontWeight: '700' }]} maxFontSizeMultiplier={2}>
+                    <Text variant="bodyLarge" style={{ color: palette.text, fontWeight: '700' }} maxFontSizeMultiplier={2}>
                       {f.title}
                     </Text>
-                    <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                    <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                       {f.text}
                     </Text>
                   </View>
@@ -131,10 +132,10 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
         {step === 1 ? (
           <View style={styles.step}>
-            <Text style={[typography.headline, { color: palette.text, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="headlineSmall" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
               Set your preferences
             </Text>
-            <Text style={[typography.body, styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
               You can change all of these later in Settings.
             </Text>
             <View style={styles.toggleGroup}>
@@ -189,15 +190,15 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
             <View style={[styles.logoCircle, { backgroundColor: palette.surface, borderColor: palette.border }]}>
               <AppIcon name="gps-fixed" size={56} color={palette.primary} />
             </View>
-            <Text style={[typography.headline, { color: palette.text, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="headlineSmall" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
               Location access
             </Text>
-            <Text style={[typography.body, styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
               To record your runs and show your position on the map, RunTracker needs location permission. It is never shared — everything stays on your device.
             </Text>
             <View style={[styles.privacyCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
               <AppIcon name="lock" size={18} color={palette.primary} />
-              <Text style={[typography.bodySmall, { color: palette.text, flex: 1 }]} maxFontSizeMultiplier={2}>
+              <Text variant="bodyMedium" style={{ color: palette.text, flex: 1 }} maxFontSizeMultiplier={2}>
                 Location data is used only while you run and is stored locally.
               </Text>
             </View>

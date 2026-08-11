@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 import { AppIcon, AppIconName } from './AppIcon';
@@ -27,7 +28,7 @@ export function BigButton({
   accessibilityHint,
   accessibilityLabel,
 }: Props) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
 
   const bg =
     variant === 'primary'
@@ -62,10 +63,10 @@ export function BigButton({
       <View style={styles.inner}>
         {icon ? <AppIcon name={icon} size={20} color={disabled ? palette.textMuted : fg} /> : null}
         <Text
+          variant="labelLarge"
           style={[
-            typography.button,
             { color: fg },
-            size === 'large' && { fontSize: typography.button.fontSize ? typography.button.fontSize + 4 : 20 },
+            size === 'large' && { fontWeight: '700' },
             disabled && { color: palette.textMuted },
           ]}
           maxFontSizeMultiplier={2}

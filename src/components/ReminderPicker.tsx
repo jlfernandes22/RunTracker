@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing, radii } from '../theme/colors';
 import { BigButton } from './BigButton';
@@ -84,7 +85,7 @@ function StepButton({
 }
 
 export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange }: Props) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const [timeOpen, setTimeOpen] = useState(false);
   const [draftHour, setDraftHour] = useState(hour);
   const [draftMinute, setDraftMinute] = useState(minute);
@@ -112,7 +113,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
 
   return (
     <View style={styles.group}>
-      <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
         Days
       </Text>
       <View style={styles.presetRow}>
@@ -139,7 +140,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
         ))}
       </View>
 
-      <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
         Time
       </Text>
       <Pressable
@@ -154,7 +155,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
       >
         <View style={styles.timeRowLeft}>
           <AppIcon name="schedule" size={18} color={palette.primary} />
-          <Text style={[typography.body, { color: palette.text, fontWeight: '700' }]} maxFontSizeMultiplier={2}>
+          <Text variant="bodyLarge" style={{ color: palette.text, fontWeight: '700' }} maxFontSizeMultiplier={2}>
             {timeLabel}
           </Text>
         </View>
@@ -164,13 +165,14 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
       <Modal visible={timeOpen} transparent animationType="fade" onRequestClose={() => setTimeOpen(false)}>
         <View style={styles.backdrop}>
           <View style={[styles.modal, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[typography.headlineMobile, { color: palette.text, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="titleLarge" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
               Reminder time
             </Text>
 
             <View style={styles.displayWrap}>
               <Text
-                style={[styles.display, { color: palette.primary }]}
+                variant="displayMedium"
+                style={{ color: palette.primary }}
                 maxFontSizeMultiplier={2}
                 accessibilityLiveRegion="polite"
               >
@@ -180,12 +182,12 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
 
             <View style={styles.steppersRow}>
               <View style={styles.stepper}>
-                <Text style={[typography.label, { color: palette.textMuted, marginBottom: spacing.xs }]} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={{ color: palette.textMuted, marginBottom: spacing.xs }} maxFontSizeMultiplier={2}>
                   Hour
                 </Text>
                 <StepButton dir={1} onStep={stepHour} label="Increase hour" color={palette.primary} />
                 <View style={[styles.stepperValue, { borderColor: palette.border, backgroundColor: palette.surfaceVariant }]}>
-                  <Text style={[styles.stepperDigit, { color: palette.text }]} maxFontSizeMultiplier={2}>
+                  <Text variant="titleLarge" style={[{ fontWeight: '800' }, { color: palette.text }]} maxFontSizeMultiplier={2}>
                     {String(draftHour).padStart(2, '0')}
                   </Text>
                 </View>
@@ -193,12 +195,12 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
               </View>
 
               <View style={styles.stepper}>
-                <Text style={[typography.label, { color: palette.textMuted, marginBottom: spacing.xs }]} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={{ color: palette.textMuted, marginBottom: spacing.xs }} maxFontSizeMultiplier={2}>
                   Minute
                 </Text>
                 <StepButton dir={1} onStep={stepMinute} label="Increase minute" color={palette.primary} />
                 <View style={[styles.stepperValue, { borderColor: palette.border, backgroundColor: palette.surfaceVariant }]}>
-                  <Text style={[styles.stepperDigit, { color: palette.text }]} maxFontSizeMultiplier={2}>
+                  <Text variant="titleLarge" style={[{ fontWeight: '800' }, { color: palette.text }]} maxFontSizeMultiplier={2}>
                     {String(draftMinute).padStart(2, '0')}
                   </Text>
                 </View>
@@ -206,7 +208,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
               </View>
             </View>
 
-            <Text style={[typography.label, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted, textAlign: 'center' }} maxFontSizeMultiplier={2}>
               Steps of 5 minutes · hold a button to scroll
             </Text>
 
@@ -271,12 +273,6 @@ const styles = StyleSheet.create({
   displayWrap: {
     alignItems: 'center',
   },
-  display: {
-    fontSize: 64,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-    letterSpacing: 2,
-  },
   steppersRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -300,11 +296,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: spacing.xs,
-  },
-  stepperDigit: {
-    fontSize: 40,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
   },
   modalActions: {
     flexDirection: 'row',

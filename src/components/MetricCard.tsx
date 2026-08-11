@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Text } from 'react-native-paper';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 
@@ -30,7 +31,7 @@ export function MetricCard({ label, value, unit, emphasis, style, glass }: Props
       ]}
     >
       <Text
-        style={[typography.label, { color: palette.textMuted }]}
+        variant="labelMedium" style={{ color: palette.textMuted }}
         maxFontSizeMultiplier={2}
       >
         {label}
@@ -45,7 +46,11 @@ export function MetricCard({ label, value, unit, emphasis, style, glass }: Props
         adjustsFontSizeToFit
       >
         {value}
-        {unit ? <Text style={{ fontSize: 14 }}> {unit}</Text> : null}
+        {unit ? (
+          <Text variant="bodyMedium" style={{ color: palette.textMuted }}>
+            {' '}{unit}
+          </Text>
+        ) : null}
       </Text>
     </View>
   );

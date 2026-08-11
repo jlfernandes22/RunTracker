@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { spacing } from '../theme/colors';
 
@@ -9,11 +10,11 @@ interface Props {
 }
 
 export function ScreenHeader({ title, children }: Props) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   return (
     <View style={styles.header}>
       <Text
-        style={[typography.headline, { color: palette.text, flex: 1 }]}
+        variant="headlineSmall" style={{ color: palette.text, flex: 1 }}
         maxFontSizeMultiplier={2}
         accessibilityRole="header"
       >

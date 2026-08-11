@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,7 +16,7 @@ import { useDialog } from '../components/Dialog';
 import { PlanStackParamList } from '../navigation/RootNavigator';
 
 export function PlanScreen() {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<PlanStackParamList>>();
   const dialog = useDialog();
   const [routes, setRoutes] = useState<SavedRoute[] | null>(null);
@@ -91,14 +92,14 @@ export function PlanScreen() {
             ]}
           >
             <View style={{ flex: 1, gap: spacing.xs }}>
-              <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
                 {item.name}
               </Text>
-              <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+              <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                 {formatDistance(item.distance_m)} (straight-line) · {item.waypoints.length} points
               </Text>
             </View>
-            <Text style={{ color: palette.textMuted, fontSize: 18 }}>›</Text>
+            <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
           </Pressable>
         )}
       />

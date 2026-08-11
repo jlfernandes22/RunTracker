@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 
@@ -12,7 +13,7 @@ interface SettingRowProps {
 }
 
 export function SettingRow({ label, value, onPress, hint, style }: SettingRowProps) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
 
   return (
     <Pressable
@@ -29,14 +30,14 @@ export function SettingRow({ label, value, onPress, hint, style }: SettingRowPro
       ]}
     >
       <View style={{ flex: 1 }}>
-        <Text style={[typography.body, { color: palette.text }]} maxFontSizeMultiplier={2}>
+        <Text variant="bodyLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
           {label}
         </Text>
       </View>
-      <Text style={[typography.bodySmall, { color: palette.textMuted, marginRight: spacing.sm }]} maxFontSizeMultiplier={2}>
+      <Text variant="bodyMedium" style={{ color: palette.textMuted, marginRight: spacing.sm }} maxFontSizeMultiplier={2}>
         {value}
       </Text>
-      <Text style={{ color: palette.textMuted, fontSize: 18 }}>›</Text>
+      <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
     </Pressable>
   );
 }
@@ -49,7 +50,7 @@ interface ToggleRowProps {
 }
 
 export function ToggleRow({ label, value, onValueChange, hint }: ToggleRowProps) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
 
   return (
     <Pressable
@@ -64,7 +65,7 @@ export function ToggleRow({ label, value, onValueChange, hint }: ToggleRowProps)
         pressed && { opacity: 0.7 },
       ]}
     >
-      <Text style={[styles.flex, typography.body, { color: palette.text }]} maxFontSizeMultiplier={2}>
+      <Text variant="bodyLarge" style={[styles.flex, { color: palette.text }]} maxFontSizeMultiplier={2}>
         {label}
       </Text>
       <View
@@ -89,9 +90,9 @@ export function ToggleRow({ label, value, onValueChange, hint }: ToggleRowProps)
 }
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   return (
-    <Text style={[typography.label, { color: palette.textMuted, fontWeight: '700' }]} maxFontSizeMultiplier={2}>
+    <Text variant="labelMedium" style={{ color: palette.textMuted, fontWeight: '700' }} maxFontSizeMultiplier={2}>
       {children}
     </Text>
   );

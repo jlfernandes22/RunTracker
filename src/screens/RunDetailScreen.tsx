@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Modal, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +17,7 @@ import { SavedRoute } from '../types';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
 
 export function RunDetailScreen() {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const mapTheme = useMapTheme();
   const insets = useSafeAreaInsets();
   const dialog = useDialog();
@@ -98,10 +99,10 @@ export function RunDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.summaryBox, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Text style={[typography.label, styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+          <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
             Route summary
           </Text>
-          <Text style={[typography.body, styles.summaryText, { color: palette.text }]} maxFontSizeMultiplier={2}>
+          <Text variant="bodyLarge" style={[styles.summaryText, { color: palette.text }]} maxFontSizeMultiplier={2}>
             {summary}
           </Text>
           <View style={styles.actions}>
@@ -112,35 +113,35 @@ export function RunDetailScreen() {
 
         <View style={styles.metricRow}>
           <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>Distance</Text>
-            <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Distance</Text>
+            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
               {formatDistance(run.distance_m)}
             </Text>
           </View>
           <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>Duration</Text>
-            <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Duration</Text>
+            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
               {formatDuration(run.duration_s)}
             </Text>
           </View>
         </View>
         <View style={styles.metricRow}>
           <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>Avg pace</Text>
-            <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Avg pace</Text>
+            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
               {formatPace(pace)}
             </Text>
           </View>
           <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>Paused</Text>
-            <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Paused</Text>
+            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
               {formatDuration(run.paused_s)}
             </Text>
           </View>
         </View>
 
         <View style={[styles.notes, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Text style={{ color: palette.text, fontSize: 16, fontWeight: '700' }} maxFontSizeMultiplier={2}>
+          <Text variant="titleMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
             Notes
           </Text>
           <BigButton
@@ -180,7 +181,7 @@ export function RunDetailScreen() {
             <Text style={[styles.modalTitle, { color: palette.text }]} maxFontSizeMultiplier={2}>
               Notes
             </Text>
-            <Text style={{ color: palette.textMuted, fontSize: 14 }} maxFontSizeMultiplier={2}>
+            <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
               How did the run feel?
             </Text>
             <TextInput
@@ -221,7 +222,7 @@ export function RunDetailScreen() {
               Route as text
             </Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <Text style={{ color: palette.text, fontSize: 14, lineHeight: 22 }} maxFontSizeMultiplier={2}>
+              <Text variant="bodyMedium" style={{ color: palette.text, lineHeight: 22 }} maxFontSizeMultiplier={2}>
                 {waypointText}
               </Text>
             </ScrollView>
@@ -253,13 +254,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   summaryTitle: {
-    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   summaryText: {
-    fontSize: 16,
     lineHeight: 24,
   },
   actions: {
@@ -298,7 +297,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   modalTitle: {
-    fontSize: 20,
     fontWeight: '800',
   },
   notesInput: {
@@ -306,7 +304,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: spacing.md,
-    fontSize: 15,
     textAlignVertical: 'top',
   },
   modalActions: {

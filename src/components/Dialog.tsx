@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Modal, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 import { BigButton } from './BigButton';
@@ -29,7 +30,7 @@ export function useDialog(): DialogContextValue {
 }
 
 export function DialogProvider({ children }: { children: React.ReactNode }) {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const [options, setOptions] = useState<DialogOptions | null>(null);
 
   const alert = useCallback((opts: DialogOptions) => {
@@ -51,11 +52,11 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
               ]}
               accessibilityViewIsModal
             >
-              <Text style={[typography.headlineMobile, { color: palette.text }]} maxFontSizeMultiplier={2}>
+              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
                 {options.title}
               </Text>
               {options.message ? (
-                <Text style={[typography.body, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                <Text variant="bodyLarge" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
                   {options.message}
                 </Text>
               ) : null}

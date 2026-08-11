@@ -3,6 +3,7 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/ThemeContext';
 import { AppIcon, AppIconName } from '../components/AppIcon';
+import { typeScale } from '../theme/tokens';
 import { RunScreen } from '../screens/RunScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { PlanScreen } from '../screens/PlanScreen';
@@ -104,7 +105,7 @@ export function RootNavigator() {
           tabBarStyle: { backgroundColor: palette.surface, borderTopColor: palette.border },
           tabBarActiveTintColor: palette.primary,
           tabBarInactiveTintColor: palette.textMuted,
-          tabBarLabelStyle: { fontSize: 11, fontWeight: '600', letterSpacing: 0.3 },
+          tabBarLabelStyle: { fontSize: typeScale.labelSmall.fontSize, fontWeight: '600', letterSpacing: 0.3 },
         }}
       >
         <Tab.Screen

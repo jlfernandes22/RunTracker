@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ import { audio } from '../services/AudioCue';
 import { PlanStackParamList } from '../navigation/RootNavigator';
 
 export function RouteDetailScreen() {
-  const { palette, typography } = useTheme();
+  const { palette } = useTheme();
   const mapTheme = useMapTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -53,10 +54,10 @@ export function RouteDetailScreen() {
         />
 
         <View style={[styles.summaryBox, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Text style={[typography.label, styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+          <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
             Route summary
           </Text>
-          <Text style={[typography.body, styles.summaryText, { color: palette.text }]} maxFontSizeMultiplier={2}>
+          <Text variant="bodyLarge" style={[styles.summaryText, { color: palette.text }]} maxFontSizeMultiplier={2}>
             {summary}
           </Text>
           <View style={styles.actions}>
@@ -66,11 +67,11 @@ export function RouteDetailScreen() {
         </View>
 
         <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Text style={[typography.label, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>Distance (straight-line)</Text>
-          <Text style={[typography.metric, { color: palette.text }]} maxFontSizeMultiplier={2}>
+          <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Distance (straight-line)</Text>
+          <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
             {formatDistance(saved.distance_m)}
           </Text>
-          <Text style={[typography.bodySmall, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+          <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
             This is an approximate distance between waypoints. No time estimate is provided.
           </Text>
         </View>
@@ -93,7 +94,7 @@ export function RouteDetailScreen() {
               Route as text
             </Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <Text style={{ color: palette.text, fontSize: 14, lineHeight: 22 }} maxFontSizeMultiplier={2}>
+              <Text variant="bodyMedium" style={{ color: palette.text, lineHeight: 22 }} maxFontSizeMultiplier={2}>
                 {waypointText}
               </Text>
             </ScrollView>
@@ -119,14 +120,12 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   summaryTitle: {
-    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
     color: '#fff',
   },
   summaryText: {
-    fontSize: 16,
     lineHeight: 24,
     color: '#fff',
   },
@@ -160,7 +159,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   modalTitle: {
-    fontSize: 20,
     fontWeight: '800',
   },
 });
