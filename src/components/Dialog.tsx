@@ -2,7 +2,8 @@ import React, { createContext, useCallback, useContext, useState } from 'react';
 import { Text } from 'react-native-paper';
 import { Modal, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
-import { radii, spacing } from '../theme/colors';
+import { radii, spacing } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+
 import { BigButton } from './BigButton';
 import { AppIconName } from './AppIcon';
 
@@ -86,7 +87,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: overlayTokens.scrimOverlay,
     justifyContent: 'center',
     padding: spacing.xl,
   },

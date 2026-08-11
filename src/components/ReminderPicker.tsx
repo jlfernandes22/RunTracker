@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native-paper';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';
+import { spacing, radii } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+
 import { BigButton } from './BigButton';
 import { AppIcon } from './AppIcon';
 
@@ -76,7 +77,7 @@ function StepButton({
       onPressOut={clear}
       style={({ pressed }) => [
         styles.stepButton,
-        pressed && { backgroundColor: 'rgba(128,128,128,0.15)' },
+        pressed && { backgroundColor: overlayTokens.pressOverlay },
       ]}
     >
       <AppIcon name={dir === 1 ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={30} color={color} />
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: overlayTokens.scrimOverlay,
     justifyContent: 'center',
     padding: spacing.lg,
   },

@@ -2,7 +2,8 @@ import React from 'react';
 import { Text } from 'react-native-paper';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
-import { radii, spacing } from '../theme/colors';
+import { radii, spacing } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+
 import { AppIcon, AppIconName } from './AppIcon';
 
 interface Props {
@@ -40,7 +41,7 @@ export function BigButton({
     variant === 'primary'
       ? palette.onPrimary
       : variant === 'danger'
-        ? '#FFFFFF'
+        ? overlayTokens.onDanger
         : palette.text;
 
   return (

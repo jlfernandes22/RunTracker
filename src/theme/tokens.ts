@@ -198,6 +198,17 @@ export const highContrastDarkColors: MD3RoleColors = {
   surfaceContainerHighest: '#444841',
 };
 
+/** Scrim overlays, press state layers, and map canvas colors (non-MD3 semantic tokens). */
+export const overlayTokens = {
+  scrimOverlay: 'rgba(0,0,0,0.55)',
+  scrimOverlayStrong: 'rgba(0,0,0,0.6)',
+  pressOverlay: 'rgba(128,128,128,0.15)',
+  onDanger: '#FFFFFF',
+  iconFallback: '#FFFFFF',
+  mapCanvasLight: '#E8EAED',
+  mapCanvasDark: '#14171A',
+} as const;
+
 /** Non-MD3 informational status tokens (GPS/pace indicators). */
 export const statusColors = {
   success: '#2FBF4F',

@@ -4,7 +4,8 @@ import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { spacing } from '../theme/colors';
+import { spacing } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+
 import { db } from '../db/database';
 import { SavedRoute } from '../types';
 import { decimalToDMS, formatDistance } from '../lib/geo';
@@ -77,7 +78,7 @@ export function RouteDetailScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.mapWrap, { height: 280 + insets.bottom + spacing.sm }]}>
+      <View style={[styles.mapWrap, { height: 280 + insets.bottom + spacing.sm, borderColor: palette.outlineVariant }]}>
         <MapWebView
           waypoints={saved.waypoints}
           onPressPoint={() => {}}
@@ -138,7 +139,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
   },
   metric: {
     borderRadius: 24,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: overlayTokens.scrimOverlayStrong,
     justifyContent: 'center',
     padding: spacing.xl,
   },

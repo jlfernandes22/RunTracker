@@ -4,7 +4,8 @@ import { Modal, StyleSheet, View } from 'react-native';
 import { useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';
+import { spacing, radii } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+
 import { session, Snapshot } from '../services/RunSession';
 import { RunState } from '../types';
 import { db } from '../db/database';
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: overlayTokens.scrimOverlayStrong,
     justifyContent: 'center',
     padding: spacing.xl,
   },

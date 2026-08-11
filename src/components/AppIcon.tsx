@@ -1,5 +1,6 @@
 import React from 'react';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';import { overlayTokens } from '../theme/tokens';
+
 
 export type AppIconName =
   | 'directions-run'
@@ -45,6 +46,6 @@ interface Props {
   style?: any;
 }
 
-export function AppIcon({ name, size = 22, color = '#FFFFFF', style }: Props) {
+export function AppIcon({ name, size = 22, color = overlayTokens.iconFallback, style }: Props) {
   return <MaterialIcons name={name} size={size} color={color} style={style} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />;
 }
