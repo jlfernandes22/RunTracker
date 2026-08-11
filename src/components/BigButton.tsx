@@ -47,9 +47,19 @@ export function BigButton({
   const { animatedStyle, onPressIn, onPressOut } = useM3PressScale();
 
   const mode =
-    variant === 'primary' ? 'contained' : variant === 'secondary' ? 'tonal' : variant === 'danger' ? 'contained' : 'text';
+    variant === 'primary' || variant === 'danger'
+      ? 'contained'
+      : variant === 'secondary'
+        ? 'contained-tonal'
+        : 'text';
   const buttonColor = variant === 'danger' ? palette.error : undefined;
   const textColor = variant === 'danger' ? palette.onError : undefined;
+  // Ghost buttons sit over maps and glass panels; give them a subtle
+  // container fill so they stay visible (MD3 text-mode is transparent).
+  const ghostStyle =
+    variant === 'ghost'
+      ? { backgroundColor: palette.surfaceContainerHigh, borderColor: palette.outlineVariant }
+      : undefined;
 
   return (
     <AnimatedButton
@@ -64,7 +74,7 @@ export function BigButton({
       compact={compact}
       icon={icon ? () => <AppIcon name={icon} size={20} color={disabled ? palette.onSurfaceVariant : undefined} /> : undefined}
       contentStyle={[styles.content, compact && styles.contentCompact, size === 'large' && styles.contentLarge]}
-      style={[{ borderRadius: radii.pill }, animatedStyle, style]}
+      style={[{ borderRadius: radii.pill }, ghostStyle, animatedStyle, style]}
       labelStyle={size === 'large' ? styles.labelLarge : undefined}
       accessibilityHint={accessibilityHint}
       accessibilityLabel={accessibilityLabel}
