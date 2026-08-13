@@ -37,11 +37,17 @@ function radiusAt(s: number, t: number): [number, number] {
   const cos = Math.cos(a);
   const sin = Math.sin(a);
   if (s === 4) {
-    // Triangle: three vertices at 90°, 210°, 330°.
-    const sectors = [0.25, 0.75, 0.0];
-    const sector = t < 1 / 3 ? sectors[0] : t < 2 / 3 ? sectors[1] : sectors[2];
-    const ang = a - sector * 2 * Math.PI;
-    const r = 0.5 / (Math.cos(ang) * Math.cos(Math.PI / 3) + 1) * 1.9;
+    // Regular triangle: vertices at 90°, 210°, 330° (apothem directions
+    // 30°, 150°, 270°). r(theta) = apothem / cos(delta) within each sector.
+    const apothem = 0.36;
+    const apothems = [Math.PI / 6, (5 * Math.PI) / 6, (3 * Math.PI) / 2];
+    let d = Infinity;
+    for (const ap of apothems) {
+      let diff = Math.abs(a - ap);
+      if (diff > Math.PI) diff = 2 * Math.PI - diff;
+      if (diff < d) d = diff;
+    }
+    const r = apothem / Math.cos(Math.min(d, Math.PI / 3));
     return [r * Math.cos(a), r * Math.sin(a)];
   }
   if (s === 5) {
@@ -62,10 +68,11 @@ function radiusAt(s: number, t: number): [number, number] {
 function shapePath(s: number, size: number): string {
   const cx = size / 2;
   const cy = size / 2;
+  const scale = size * 0.72;
   const pts: [number, number][] = [];
   for (let i = 0; i < SEGMENTS; i++) {
     const [x, y] = radiusAt(s, i / SEGMENTS);
-    pts.push([cx + x * size, cy + y * size]);
+    pts.push([cx + x * scale, cy + y * scale]);
   }
   return buildPathFromInterp(pts);
 }
@@ -133,7 +140,7 @@ export function LoadingIndicator({ size = 48, color, overlay }: Props) {
     const frac = p - idx;
     const a = KEY_POINTS[idx];
     const b = KEY_POINTS[Math.min(idx + 1, KEY_POINTS.length - 1)];
-    const scale = size * 0.8;
+    const scale = size * 0.72;
     const cx = size / 2;
     const cy = size / 2;
     const pts: [number, number][] = a.map((_, i) => {
