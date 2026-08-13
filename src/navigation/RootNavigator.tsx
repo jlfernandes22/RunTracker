@@ -1,7 +1,13 @@
-import React from 'react';
-import { Easing as AnimatedEasing } from 'react-native';
+import React, { useEffect } from 'react';
+import { Easing as AnimatedEasing, Pressable } from 'react-native';
+import Animated, {
+  createAnimatedComponent,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
-import { Duration } from '../theme/tokens';
+import { Duration, Spring, toReanimatedSpring } from '../theme/tokens';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/ThemeContext';
 import { AppIcon, AppIconName } from '../components/AppIcon';
@@ -44,9 +50,75 @@ const TABS: Record<keyof RootTabParamList, { icon: AppIconName; label: string }>
   Settings: { icon: 'settings', label: 'Settings' },
 };
 
+/**
+ * Tab icon with a spring pop on selection (spatialFast, MD3 press scale),
+ * gated by reduce-motion. The icon scales 1.0 when active, 0.82 when idle.
+ */
+function TabIcon({ icon, focused, color }: { icon: AppIconName; focused: boolean; color: string }) {
+  const { settings } = useTheme();
+  const scale = useSharedValue(focused ? 1 : 0.82);
+
+  useEffect(() => {
+    if (settings.reduceMotion) {
+      scale.value = focused ? 1 : 0.82;
+      return;
+    }
+    scale.value = withSpring(focused ? 1 : 0.82, toReanimatedSpring(Spring.spatialFast));
+  }, [focused, settings.reduceMotion, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <AppIcon name={icon} size={26} color={color} />
+    </Animated.View>
+  );
+}
+
+const AnimatedTabButton = createAnimatedComponent(Pressable);
+
+/**
+ * Tab button without the default grey ripple; the whole button squashes
+ * slightly on press and springs back (MD3 spatialFast).
+ */
+function TabBarButton(props: any) {
+  const { settings } = useTheme();
+  const scale = useSharedValue(1);
+
+  const pressIn = () => {
+    if (settings.reduceMotion) return;
+    scale.value = withSpring(0.9, toReanimatedSpring(Spring.spatialFast));
+  };
+  const pressOut = () => {
+    if (settings.reduceMotion) return;
+    scale.value = withSpring(1, toReanimatedSpring(Spring.spatialFast));
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const { onPress, onLongPress, children, style, ...rest } = props;
+  return (
+    <AnimatedTabButton
+      {...rest}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={pressIn}
+      onPressOut={pressOut}
+      android_ripple={{ color: 'transparent' }}
+      style={[style, animatedStyle]}
+    >
+      {children}
+    </AnimatedTabButton>
+  );
+}
+
 function tabIcon(tab: keyof RootTabParamList, focused: boolean, color: string) {
   const t = TABS[tab];
-  return <AppIcon name={t.icon} size={focused ? 26 : 24} color={color} />;
+  return <TabIcon icon={t.icon} focused={focused} color={color} />;
 }
 
 function HistoryNavigator() {
@@ -108,6 +180,7 @@ export function RootNavigator() {
           tabBarActiveTintColor: palette.primary,
           tabBarInactiveTintColor: palette.textMuted,
           tabBarLabelStyle: { fontSize: typeScale.labelSmall.fontSize, fontWeight: '600', letterSpacing: 0.3 },
+          tabBarButton: (props) => <TabBarButton {...props} />,
           // MD3 nav-tab motion: standard easing, short4 (200ms). Disabled with reduce-motion.
           animation: settings.reduceMotion ? 'none' : 'shift',
           transitionSpec: {
