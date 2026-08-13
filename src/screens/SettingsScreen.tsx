@@ -21,7 +21,7 @@ import { setSoundEnabled, setVibrationEnabled } from '../services/AudioCue';
 import { MergeStrategy } from '../types';
 
 export function SettingsScreen() {
-  const { palette, settings, setHighContrast, setReduceMotion, setFontScale } = useTheme();
+  const { palette, settings, setHighContrast, setReduceMotion, setFontScale, setThemeMode } = useTheme();
   const dialog = useDialog();
   const [prefs, setPrefs] = useState<NotificationPrefs>({ ...DEFAULT_PREFS });
   const [autoPause, setAutoPause] = useState(true);
@@ -224,6 +224,22 @@ export function SettingsScreen() {
 
       <SectionLabel>Accessibility</SectionLabel>
       <View style={styles.group}>
+        <SettingRow
+          label="App theme"
+          value={settings.themeMode === 'system' ? 'System' : settings.themeMode === 'light' ? 'Light' : 'Dark'}
+          onPress={() =>
+            dialog.alert({
+              title: 'App theme',
+              message: 'Choose how the app looks.',
+              buttons: [
+                { label: 'System', variant: settings.themeMode === 'system' ? 'primary' : 'secondary', onPress: () => setThemeMode('system') },
+                { label: 'Light', variant: settings.themeMode === 'light' ? 'primary' : 'secondary', onPress: () => setThemeMode('light') },
+                { label: 'Dark', variant: settings.themeMode === 'dark' ? 'primary' : 'secondary', onPress: () => setThemeMode('dark') },
+              ],
+            })
+          }
+          hint="Follows your device by default"
+        />
         <ToggleRow
           label="High contrast theme"
           hint="Switches to a high-contrast palette with strong color contrast"
@@ -244,10 +260,10 @@ export function SettingsScreen() {
               title: 'Larger text',
               message: 'Choose a text size multiplier.',
               buttons: [
-                { label: 'Default', onPress: () => setFontScale(1) },
-                { label: '110%', variant: 'secondary', onPress: () => setFontScale(1.1) },
-                { label: '125%', variant: 'secondary', onPress: () => setFontScale(1.25) },
-                { label: '150%', variant: 'secondary', onPress: () => setFontScale(1.5) },
+                { label: 'Default', variant: settings.fontScale === 1 ? 'primary' : 'secondary', onPress: () => setFontScale(1) },
+                { label: '110%', variant: settings.fontScale === 1.1 ? 'primary' : 'secondary', onPress: () => setFontScale(1.1) },
+                { label: '125%', variant: settings.fontScale === 1.25 ? 'primary' : 'secondary', onPress: () => setFontScale(1.25) },
+                { label: '150%', variant: settings.fontScale === 1.5 ? 'primary' : 'secondary', onPress: () => setFontScale(1.5) },
               ],
             })
           }

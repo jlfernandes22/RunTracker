@@ -18,10 +18,14 @@ import {
   typeScale,
 } from './tokens';
 
+export type ThemeMode = 'system' | 'light' | 'dark';
+
 export interface ThemeSettings {
   highContrast: boolean;
   reduceMotion: boolean;
   fontScale: number;
+  /** Manual theme override (default: follow the device). */
+  themeMode: ThemeMode;
 }
 
 export interface Typography {
@@ -92,11 +96,19 @@ export interface Theme {
   setHighContrast: (v: boolean) => void;
   setReduceMotion: (v: boolean) => void;
   setFontScale: (v: number) => void;
+  setThemeMode: (v: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<Theme | null>(null);
 
 const SETTINGS_KEY = 'ui.theme';
+
+const DEFAULT_SETTINGS: ThemeSettings = {
+  highContrast: false,
+  reduceMotion: false,
+  fontScale: 1,
+  themeMode: 'system',
+};
 
 function buildPalette(
   colors: typeof lightColors,
@@ -125,6 +137,23 @@ function hexToRgb(hex: string): string {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 }
 
+function scalePaperFonts<T extends { fonts: Record<string, { fontSize?: number; lineHeight?: number }> }>(
+  theme: T,
+  fs: number,
+): T {
+  if (fs === 1) return theme;
+  const fonts: Record<string, { fontSize?: number; lineHeight?: number }> = {};
+  for (const key of Object.keys(theme.fonts)) {
+    const f = theme.fonts[key];
+    fonts[key] = {
+      ...f,
+      fontSize: f.fontSize != null ? Math.round(f.fontSize * fs) : undefined,
+      lineHeight: f.lineHeight != null ? Math.round(f.lineHeight * fs) : undefined,
+    };
+  }
+  return { ...theme, fonts };
+}
+
 function buildTypography(fs: number): Typography {
   const scale = (role: keyof typeof typeScale) => ({
     ...typeScale[role],
@@ -145,18 +174,14 @@ function buildTypography(fs: number): Typography {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [settings, setSettings] = useState<ThemeSettings>({
-    highContrast: false,
-    reduceMotion: false,
-    fontScale: 1,
-  });
+  const [settings, setSettings] = useState<ThemeSettings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     const { db } = require('../db/database');
     db.getSetting(SETTINGS_KEY).then((raw: string | null) => {
       if (raw) {
         try {
-          setSettings(JSON.parse(raw));
+          setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(raw) });
         } catch {}
       }
     });
@@ -180,8 +205,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     (v: number) => persist({ ...settings, fontScale: v }),
     [persist, settings],
   );
+  const setThemeMode = useCallback(
+    (v: ThemeMode) => persist({ ...settings, themeMode: v }),
+    [persist, settings],
+  );
 
-  const isDark = systemScheme === 'dark';
+  const isDark =
+    settings.themeMode === 'system' ? systemScheme === 'dark' : settings.themeMode === 'dark';
   const { paperTheme, palette } = useMemo(() => {
     if (settings.highContrast) {
       const { highContrastDarkTheme, highContrastLightTheme } = require('./index');
@@ -190,10 +220,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         ? { success: statusColors.successOnDark, warning: statusColors.warningOnDark }
         : { success: statusColors.success, warning: statusColors.warning };
       const theme = isDark ? highContrastDarkTheme : highContrastLightTheme;
+      const scaled = scalePaperFonts(theme, settings.fontScale);
       return {
         paperTheme: settings.reduceMotion
-          ? { ...theme, animation: { ...theme.animation, scale: 0 } }
-          : theme,
+          ? { ...scaled, animation: { ...scaled.animation, scale: 0 } }
+          : scaled,
         palette: buildPalette(colors, status),
       };
     }
@@ -203,13 +234,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       ? { success: statusColors.successOnDark, warning: statusColors.warningOnDark }
       : { success: statusColors.success, warning: statusColors.warning };
     const theme = isDark ? darkTheme : lightTheme;
+    const scaled = scalePaperFonts(theme, settings.fontScale);
     return {
       paperTheme: settings.reduceMotion
-        ? { ...theme, animation: { ...theme.animation, scale: 0 } }
-        : theme,
+        ? { ...scaled, animation: { ...scaled.animation, scale: 0 } }
+        : scaled,
       palette: buildPalette(colors, status),
     };
-  }, [isDark, settings.highContrast, settings.reduceMotion]);
+  }, [isDark, settings.highContrast, settings.reduceMotion, settings.fontScale]);
 
   const typography = useMemo(() => buildTypography(settings.fontScale), [settings.fontScale]);
 
@@ -222,8 +254,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setHighContrast,
       setReduceMotion,
       setFontScale,
+      setThemeMode,
     }),
-    [palette, typography, paperTheme, settings, setHighContrast, setReduceMotion, setFontScale],
+    [
+      palette,
+      typography,
+      paperTheme,
+      settings,
+      setHighContrast,
+      setReduceMotion,
+      setFontScale,
+      setThemeMode,
+    ],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

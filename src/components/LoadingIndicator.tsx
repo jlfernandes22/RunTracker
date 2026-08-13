@@ -51,24 +51,26 @@ function radiusAt(s: number, t: number): [number, number] {
     return [r * Math.cos(a), r * Math.sin(a)];
   }
   if (s === 5) {
-    // Diamond: radius varies with |cos|+|sin| (L1 ball).
-    const r = 0.46 / (Math.abs(cos) + Math.abs(sin));
+    // Diamond (L1 ball), equal area to the circle: vertex radius 0.577.
+    const r = 0.577 / (Math.abs(cos) + Math.abs(sin));
     return [r * cos, r * sin];
   }
   if (s === 6) {
     // Horizontal bar: squeeze the y radius.
     return [0.46 * cos, 0.14 * sin];
   }
-  // Superellipse: circle (n=2) → square (n=10).
-  const n = interpolate(s, [0, 1, 2, 3], [2, 2, 6, 12]);
-  const r = 0.46 / Math.pow(Math.pow(Math.abs(cos), n) + Math.pow(Math.abs(sin), n), 1 / n);
+  // Superellipse: circle (n=2) → rounded square (n=4) → square (n=12),
+  // equal area to the circle so no shape's corners poke out of the viewport.
+  const n = interpolate(s, [0, 1, 2, 3], [2, 2, 4, 12]);
+  const axis = interpolate(s, [0, 1, 2, 3], [0.46, 0.46, 0.407, 0.305]);
+  const r = axis / Math.pow(Math.pow(Math.abs(cos), n) + Math.pow(Math.abs(sin), n), 1 / n);
   return [r * cos, r * sin];
 }
 
 function shapePath(s: number, size: number): string {
   const cx = size / 2;
   const cy = size / 2;
-  const scale = size * 0.72;
+  const scale = size * 0.68;
   const pts: [number, number][] = [];
   for (let i = 0; i < SEGMENTS; i++) {
     const [x, y] = radiusAt(s, i / SEGMENTS);
@@ -140,7 +142,7 @@ export function LoadingIndicator({ size = 48, color, overlay }: Props) {
     const frac = p - idx;
     const a = KEY_POINTS[idx];
     const b = KEY_POINTS[Math.min(idx + 1, KEY_POINTS.length - 1)];
-    const scale = size * 0.72;
+    const scale = size * 0.68;
     const cx = size / 2;
     const cy = size / 2;
     const pts: [number, number][] = a.map((_, i) => {

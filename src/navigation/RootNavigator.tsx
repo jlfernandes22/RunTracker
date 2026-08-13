@@ -1,5 +1,7 @@
 import React from 'react';
+import { Easing as AnimatedEasing } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { Duration } from '../theme/tokens';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/ThemeContext';
 import { AppIcon, AppIconName } from '../components/AppIcon';
@@ -83,7 +85,7 @@ function PlanNavigator() {
 }
 
 export function RootNavigator() {
-  const { palette } = useTheme();
+  const { palette, settings } = useTheme();
   return (
     <NavigationContainer
       theme={{
@@ -106,6 +108,15 @@ export function RootNavigator() {
           tabBarActiveTintColor: palette.primary,
           tabBarInactiveTintColor: palette.textMuted,
           tabBarLabelStyle: { fontSize: typeScale.labelSmall.fontSize, fontWeight: '600', letterSpacing: 0.3 },
+          // MD3 nav-tab motion: standard easing, short4 (200ms). Disabled with reduce-motion.
+          animation: settings.reduceMotion ? 'none' : 'shift',
+          transitionSpec: {
+            animation: 'timing',
+            config: {
+              duration: Duration.short4,
+              easing: AnimatedEasing.bezier(0.2, 0, 0, 1),
+            },
+          },
         }}
       >
         <Tab.Screen

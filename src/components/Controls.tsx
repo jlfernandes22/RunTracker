@@ -3,6 +3,7 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 import { List, Switch, Text } from 'react-native-paper';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
+import { AppIcon } from './AppIcon';
 
 interface SettingRowProps {
   label: string;
@@ -28,7 +29,7 @@ export function SettingRow({ label, value, onPress, hint, style }: SettingRowPro
           <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }}>
             {value}
           </Text>
-          <List.Icon icon="chevron-right" color={palette.onSurfaceVariant} />
+          <AppIcon name="navigate-next" size={22} color={palette.onSurfaceVariant} />
         </View>
       )}
       style={[
