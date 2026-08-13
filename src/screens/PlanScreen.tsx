@@ -13,6 +13,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { BigButton } from '../components/BigButton';
 import { useDialog } from '../components/Dialog';
+import { useSnackbar } from '../components/Snackbar';
 import { AnimatedPressable } from '../components/AnimatedPressable';
 import { ListSkeleton } from '../components/Skeleton';
 import { PlanStackParamList } from '../navigation/RootNavigator';
@@ -21,6 +22,7 @@ export function PlanScreen() {
   const { palette } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<PlanStackParamList>>();
   const dialog = useDialog();
+  const snackbar = useSnackbar();
   const [routes, setRoutes] = useState<SavedRoute[] | null>(null);
 
   const load = useCallback(() => {
@@ -50,13 +52,14 @@ export function PlanScreen() {
             variant: 'danger',
             onPress: async () => {
               await db.deleteRoute(route.id);
+              snackbar.showSnackbar('Route deleted');
               load();
             },
           },
         ],
       });
     },
-    [dialog, load],
+    [dialog, load, snackbar],
   );
 
 

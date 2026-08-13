@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Text } from 'react-native-paper';
+import { Chip, Text } from 'react-native-paper';
 import { FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -23,6 +23,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { AppIcon } from '../components/AppIcon';
 import { ProgressRing } from '../components/ProgressRing';
 import { useDialog } from '../components/Dialog';
+import { useSnackbar } from '../components/Snackbar';
 import { AnimatedPressable } from '../components/AnimatedPressable';
 import { ListSkeleton } from '../components/Skeleton';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
@@ -31,10 +32,12 @@ export function HistoryScreen() {
   const { palette } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<HistoryStackParamList>>();
   const dialog = useDialog();
+  const snackbar = useSnackbar();
   const [runs, setRuns] = useState<Run[] | null>(null);
   const [weekKm, setWeekKm] = useState(0);
   const [streakDays, setStreakDays] = useState(0);
   const [weekCount, setWeekCount] = useState(0);
+  const [month, setMonth] = useState<string>('all');
 
   const load = useCallback(() => {
     db.getAllRuns()
@@ -69,13 +72,14 @@ export function HistoryScreen() {
             variant: 'danger',
             onPress: async () => {
               await db.deleteRun(run.id);
+              snackbar.showSnackbar('Run deleted');
               load();
             },
           },
         ],
       });
     },
-    [dialog, load],
+    [dialog, load, snackbar],
   );
 
   if (runs === null) {
@@ -90,6 +94,27 @@ export function HistoryScreen() {
   }
 
   const sorted = [...runs].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+
+  const months = Array.from(
+    new Set(
+      sorted.map((r) => {
+        const d = new Date(r.start_time);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      }),
+    ),
+  );
+  const monthLabel = (m: string) => {
+    const [y, mo] = m.split('-');
+    return new Date(Number(y), Number(mo) - 1, 1).toLocaleDateString(undefined, {
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+  const filtered = month === 'all' ? sorted : sorted.filter((r) => {
+    const d = new Date(r.start_time);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === month;
+  });
+
   const ringProgress = Math.min(1, weekKm / 30);
   const streakProgress = Math.min(1, streakDays / 7);
 
@@ -107,52 +132,63 @@ export function HistoryScreen() {
       </ScreenHeader>
 
       <FlatList
-        data={sorted}
+        data={filtered}
         keyExtractor={(r) => r.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           runs.length > 0 ? (
-            <View style={styles.widgetRow}>
-              <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-                <ProgressRing progress={ringProgress} color={palette.accent} trackColor={palette.surfaceVariant}>
-                  <View style={styles.ringCenter}>
-                    <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
-                      {weekKm.toFixed(1)}
-                    </Text>
-                    <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                      km
-                    </Text>
-                  </View>
-                </ProgressRing>
-                <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
-                  Weekly Distance
-                </Text>
-                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                  {weekKm >= 30 ? 'Goal reached!' : `${(30 - weekKm).toFixed(1)} km to goal`}
-                </Text>
+            <>
+              <View style={styles.widgetRow}>
+                <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+                  <ProgressRing progress={ringProgress} color={palette.accent} trackColor={palette.surfaceVariant}>
+                    <View style={styles.ringCenter}>
+                      <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                        {weekKm.toFixed(1)}
+                      </Text>
+                      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                        km
+                      </Text>
+                    </View>
+                  </ProgressRing>
+                  <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                    Weekly Distance
+                  </Text>
+                  <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                    {weekKm >= 30 ? 'Goal reached!' : `${(30 - weekKm).toFixed(1)} km to goal`}
+                  </Text>
+                </View>
+
+                <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+                  <ProgressRing progress={streakProgress} color={palette.primary} trackColor={palette.surfaceVariant}>
+                    <View style={styles.ringCenter}>
+                      <AppIcon name="local-fire-department" size={22} color={palette.primary} />
+                      <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                        {streakDays}
+                      </Text>
+                      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                        days
+                      </Text>
+                    </View>
+                  </ProgressRing>
+                  <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                    Current Streak
+                  </Text>
+                  <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                    {streakDays > 0 ? 'Keep the momentum!' : 'Go for a run today'}
+                  </Text>
+                </View>
               </View>
 
-              <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-                <ProgressRing progress={streakProgress} color={palette.primary} trackColor={palette.surfaceVariant}>
-                  <View style={styles.ringCenter}>
-                    <AppIcon name="local-fire-department" size={22} color={palette.primary} />
-                    <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
-                      {streakDays}
-                    </Text>
-                    <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                      days
-                    </Text>
-                  </View>
-                </ProgressRing>
-                <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
-                  Current Streak
-                </Text>
-                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                  {streakDays > 0 ? 'Keep the momentum!' : 'Go for a run today'}
-                </Text>
+              <View style={styles.monthRow}>
+                <Chip selected={month === 'all'} onPress={() => setMonth('all')}>All</Chip>
+                {months.map((m) => (
+                  <Chip key={m} selected={month === m} onPress={() => setMonth(m)}>
+                    {monthLabel(m)}
+                  </Chip>
+                ))}
               </View>
-            </View>
+            </>
           ) : null
         }
         ListEmptyComponent={
@@ -234,6 +270,12 @@ const styles = StyleSheet.create({
   widgetRow: {
     flexDirection: 'row',
     gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  monthRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
     marginBottom: spacing.sm,
   },
   widget: {

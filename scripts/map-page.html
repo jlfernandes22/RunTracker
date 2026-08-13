@@ -44,6 +44,8 @@ __JS__
   var line = null;
   var plannedLine = null;
   var posDot = null;
+  var startMarker = null;
+  var endMarker = null;
 
   function post(msg) {
     if (window.ReactNativeWebView) {
@@ -94,6 +96,8 @@ __JS__
     if (line) { map.removeLayer(line); line = null; }
     if (plannedLine) { map.removeLayer(plannedLine); plannedLine = null; }
     if (posDot) { map.removeLayer(posDot); posDot = null; }
+    if (startMarker) { map.removeLayer(startMarker); startMarker = null; }
+    if (endMarker) { map.removeLayer(endMarker); endMarker = null; }
   }
 
   function apply(data) {
@@ -124,6 +128,16 @@ __JS__
         });
         markers.push(L.marker([p.lat, p.lng], { icon: icon }).addTo(map));
       });
+    } else if (pts.length >= 2) {
+      // Track mode: show the start and end of the route.
+      var first = pts[0];
+      var last = pts[pts.length - 1];
+      startMarker = L.circleMarker([first.lat, first.lng], {
+        radius: 6, color: '#FFFFFF', weight: 2, fillColor: c.start, fillOpacity: 1
+      }).addTo(map);
+      endMarker = L.circleMarker([last.lat, last.lng], {
+        radius: 6, color: '#FFFFFF', weight: 2, fillColor: c.end, fillOpacity: 1
+      }).addTo(map);
     } else if (pts.length > 0) {
       var last = pts[pts.length - 1];
       posDot = L.circleMarker([last.lat, last.lng], {

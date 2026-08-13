@@ -109,6 +109,44 @@ export function weekDistanceM(runs: { start_time: string; distance_m: number }[]
     .reduce((sum, r) => sum + r.distance_m, 0);
 }
 
+/**
+ * Downsamples a polyline to at most `max` points (always keeps first & last).
+ * Used when turning a full run track into a planned route so the planner map
+ * stays fast.
+ */
+export function downsamplePolyline(points: GeoPoint[], max: number): GeoPoint[] {
+  if (points.length <= max) return points;
+  const step = (points.length - 1) / (max - 1);
+  const out: GeoPoint[] = [];
+  for (let i = 0; i < max; i++) {
+    out.push(points[Math.round(i * step)]);
+  }
+  return out;
+}
+
+/**
+ * Computes per-km splits from a run polyline. Split durations come from the
+ * point timestamps, so paused time (no points recorded) is naturally excluded.
+ */
+export function computeSplits(polyline: GeoPoint[]): { km: number; durationS: number }[] {
+  const splits: { km: number; durationS: number }[] = [];
+  if (polyline.length < 2) return splits;
+  let acc = 0;
+  let segStartIdx = 0;
+  for (let i = 1; i < polyline.length; i++) {
+    acc += haversine(polyline[i - 1], polyline[i]);
+    if (acc >= 1000) {
+      const dt = (polyline[i].ts - polyline[segStartIdx].ts) / 1000;
+      if (dt > 0) {
+        splits.push({ km: splits.length + 1, durationS: dt });
+      }
+      acc -= 1000;
+      segStartIdx = i;
+    }
+  }
+  return splits;
+}
+
 export function startOfWeek(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);

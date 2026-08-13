@@ -9,10 +9,21 @@ import { overlayTokens } from '../theme/tokens';
 
 import { db } from '../db/database';
 import { Run } from '../types';
-import { decimalToDMS, formatDate, formatDistance, formatDuration, formatPace, formatTime, uuid } from '../lib/geo';
+import {
+  computeSplits,
+  decimalToDMS,
+  downsamplePolyline,
+  formatDate,
+  formatDistance,
+  formatDuration,
+  formatPace,
+  formatTime,
+  uuid,
+} from '../lib/geo';
 import { MapWebView } from '../components/MapWebView';
 import { BigButton } from '../components/BigButton';
 import { useDialog } from '../components/Dialog';
+import { useSnackbar } from '../components/Snackbar';
 import { audio } from '../services/AudioCue';
 import { toGpx } from '../services/backup';
 import { Skeleton } from '../components/Skeleton';
@@ -24,6 +35,7 @@ export function RunDetailScreen() {
   const mapTheme = useMapTheme();
   const insets = useSafeAreaInsets();
   const dialog = useDialog();
+  const snackbar = useSnackbar();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<HistoryStackParamList, 'RunDetail'>>();
   const [run, setRun] = useState<Run | null | undefined>(undefined);
@@ -74,6 +86,7 @@ export function RunDetailScreen() {
 
   const movingS = run.duration_s - (run.paused_s ?? 0);
   const pace = movingS > 0 && run.distance_m > 0 ? movingS / (run.distance_m / 1000) : null;
+  const splits = computeSplits(run.polyline);
 
   const summary =
     `Run on ${formatDate(run.start_time)} at ${formatTime(run.start_time)}. ` +
@@ -92,10 +105,12 @@ export function RunDetailScreen() {
     .join('\n');
 
   const saveAsRoute = async () => {
+    // A run track can have thousands of GPS points; downsampling keeps the
+    // planner map responsive.
     const route: SavedRoute = {
       id: uuid(),
       name: `Route ${formatDistance(run.distance_m)}`,
-      waypoints: run.polyline,
+      waypoints: downsamplePolyline(run.polyline, 100),
       distance_m: run.distance_m,
       created_at: new Date().toISOString(),
     };
@@ -119,7 +134,7 @@ export function RunDetailScreen() {
     dir.create({ intermediates: true, idempotent: true });
     const file = new File(dir, `${run.id}.gpx`);
     file.write(toGpx(run));
-    dialog.alert({ title: 'GPX exported', message: `Saved to ${file.uri}`, buttons: [{ label: 'OK' }] });
+    snackbar.showSnackbar('GPX file saved on this device');
   };
 
   return (
@@ -170,6 +185,27 @@ export function RunDetailScreen() {
             </Text>
           </View>
         </View>
+
+        {splits.length > 0 ? (
+          <View style={[styles.splitsCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+            <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+              Splits
+            </Text>
+            {splits.map((sp) => (
+              <View key={sp.km} style={styles.splitRow}>
+                <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+                  Km {sp.km}
+                </Text>
+                <Text variant="bodyMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+                  {formatDuration(sp.durationS)}
+                </Text>
+                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                  {formatPace(sp.durationS)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={[styles.notes, { backgroundColor: palette.surface, borderColor: palette.border }]}>
           <Text variant="titleMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
@@ -319,6 +355,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.lg,
     gap: spacing.sm,
+  },
+  splitsCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  splitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   modalBackdrop: {
     flex: 1,

@@ -13,6 +13,7 @@ import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { isDarkHex } from './src/theme/colors';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { DialogProvider } from './src/components/Dialog';
+import { SnackbarProvider } from './src/components/Snackbar';
 import { setupChannels } from './src/services/notifications';
 import { darkColors } from './src/theme/tokens';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
@@ -67,11 +68,13 @@ function App() {
         <ThemeProvider>
           <ThemedPaperProvider>
             <DialogProvider>
-              {onboardingDone ? (
-                <ThemedApp />
-              ) : (
-                <OnboardingScreen onDone={() => setOnboardingDone(true)} />
-              )}
+              <SnackbarProvider>
+                {onboardingDone ? (
+                  <ThemedApp />
+                ) : (
+                  <OnboardingScreen onDone={() => setOnboardingDone(true)} />
+                )}
+              </SnackbarProvider>
             </DialogProvider>
           </ThemedPaperProvider>
         </ThemeProvider>

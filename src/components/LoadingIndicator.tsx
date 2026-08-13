@@ -127,15 +127,21 @@ export function LoadingIndicator({ size = 48, color, overlay }: Props) {
   }, [progress, settings.reduceMotion]);
 
   const animatedProps = useAnimatedProps(() => {
+    'worklet';
     const p = Math.min(progress.value, KEY_POINTS.length - 1.0001);
     const idx = Math.floor(p);
     const frac = p - idx;
     const a = KEY_POINTS[idx];
     const b = KEY_POINTS[Math.min(idx + 1, KEY_POINTS.length - 1)];
+    const scale = size * 0.8;
+    const cx = size / 2;
+    const cy = size / 2;
     const pts: [number, number][] = a.map((_, i) => {
       const av = a[i];
       const bv = b[i];
-      return [av[0] + (bv[0] - av[0]) * frac, av[1] + (bv[1] - av[1]) * frac];
+      const rx = av[0] + (bv[0] - av[0]) * frac;
+      const ry = av[1] + (bv[1] - av[1]) * frac;
+      return [cx + rx * scale, cy + ry * scale];
     });
     return { d: buildPathFromInterp(pts) };
   });

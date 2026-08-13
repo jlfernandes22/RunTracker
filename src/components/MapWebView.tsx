@@ -89,10 +89,17 @@ export const MapWebView = forwardRef<MapWebViewHandle, Props>(function MapWebVie
           return;
         }
         try {
-          const pos = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-            timeInterval: 15000,
-          });
+          // getCurrentPositionAsync has no built-in timeout and can wait
+          // indefinitely indoors; bail out after 20s so the UI never hangs.
+          const pos = await Promise.race([
+            Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.High,
+              timeInterval: 15000,
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('timeout')), 20000),
+            ),
+          ]);
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           console.log('[map] located at', lat.toFixed(5), lng.toFixed(5));
