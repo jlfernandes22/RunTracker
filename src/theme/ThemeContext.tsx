@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { TextStyle, useColorScheme } from 'react-native';
 import type { MD3Theme } from './index';
+import { isDarkHex } from './colors';
 import {
   darkColors,
   highContrastDarkColors,
@@ -238,8 +239,5 @@ export type MapTheme = 'light' | 'dark';
 
 export function useMapTheme(): MapTheme {
   const { palette } = useTheme();
-  const r = parseInt(palette.background.slice(1, 3), 16);
-  const g = parseInt(palette.background.slice(3, 5), 16);
-  const b = parseInt(palette.background.slice(5, 7), 16);
-  return 0.3 * r + 0.6 * g + 0.1 * b > 128 ? 'light' : 'dark';
+  return isDarkHex(palette.background) ? 'dark' : 'light';
 }

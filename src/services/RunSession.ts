@@ -328,6 +328,8 @@ class RunSession {
     this.pausedSince = null;
     this.nextKmBoundary = KM;
     this.lastKmDurationS = null;
+    this.lastKmCompletedAt = null;
+    this.prevKmCompletedAt = null;
     this.currentPaceS = null;
     this.stationaryMs = 0;
     this.autoPaused = false;
@@ -521,6 +523,9 @@ class RunSession {
         : cp.run.paused_s;
     this.pausedSince = cp.pausedSince;
     this.nextKmBoundary = cp.nextKmBoundary;
+    this.lastKmDurationS = null;
+    this.lastKmCompletedAt = null;
+    this.prevKmCompletedAt = null;
     const wasPaused = cp.pausedSince != null;
     this.state = wasPaused ? 'paused' : 'recording';
     this.autoPaused = wasPaused;

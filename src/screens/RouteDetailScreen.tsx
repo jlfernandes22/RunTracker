@@ -4,7 +4,8 @@ import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { spacing } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+import { spacing } from '../theme/colors';
+import { overlayTokens } from '../theme/tokens';
 
 import { db } from '../db/database';
 import { SavedRoute } from '../types';
@@ -124,11 +125,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    color: '#fff',
   },
   summaryText: {
     lineHeight: 24,
-    color: '#fff',
   },
   actions: {
     flexDirection: 'row',

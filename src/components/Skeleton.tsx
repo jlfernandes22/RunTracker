@@ -62,7 +62,6 @@ export function Skeleton({ width = '100%', height, radius = 12, style }: Skeleto
 
 /** List skeleton: rows of skeleton cards matching the app's run/route cards. */
 export function ListSkeleton({ rows = 6 }: { rows?: number }) {
-  const { spacing } = require('../theme/colors');
   const S = () => (
     <View style={styles.skeletonCard}>
       <View style={{ flex: 1, gap: 8 }}>
@@ -73,7 +72,6 @@ export function ListSkeleton({ rows = 6 }: { rows?: number }) {
       <Skeleton width={28} height={28} radius={14} />
     </View>
   );
-  void spacing;
   return (
     <View style={styles.list}>
       {Array.from({ length: rows }, (_, i) => (

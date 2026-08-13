@@ -84,12 +84,14 @@ export async function scheduleFromPrefs(prefs: NotificationPrefs) {
   const hour = Math.max(0, Math.min(23, prefs.hour));
   const minute = Math.max(0, Math.min(59, prefs.minute));
 
-  for (const day of prefs.days) {
-    const isRestDay = !prefs.days.includes((day + 6) % 7);
+  for (let day = 0; day < 7; day++) {
+    const isRunDay = prefs.days.includes(day);
+    // Rest-day nudges fire on days the user does not run (only when enabled).
+    if (!isRunDay && !prefs.restReminders) continue;
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: isRestDay && prefs.restReminders ? 'Rest day' : 'Run day',
-        body: pick(isRestDay && prefs.restReminders ? REST_MESSAGES : MESSAGES),
+        title: isRunDay ? 'Run day' : 'Rest day',
+        body: pick(isRunDay ? MESSAGES : REST_MESSAGES),
         sound: 'default',
       },
       trigger: {
@@ -101,7 +103,6 @@ export async function scheduleFromPrefs(prefs: NotificationPrefs) {
       },
     });
   }
-
 }
 
 function pick(arr: string[]): string {
@@ -118,37 +119,4 @@ export async function showRunStatsNotification(text: string) {
 export async function hideRunStatsNotification() {
   const { NativeModules } = require('react-native');
   await NativeModules.RunStatsNotifier?.hide();
-}
-
-export function startOfWeek(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  return d;
-}
-
-export function currentStreakWeeks(runsStartTimes: number[]): number {
-  const weeks = new Set<number>();
-  for (const ts of runsStartTimes) {
-    weeks.add(weekIndex(new Date(ts)));
-  }
-  let streak = 0;
-  const now = new Date();
-  let idx = weekIndex(now);
-  if (weeks.has(idx)) {
-    streak++;
-    idx--;
-  }
-  while (weeks.has(idx)) {
-    streak++;
-    idx--;
-  }
-  return streak;
-}
-
-function weekIndex(d: Date): number {
-  const monday = startOfWeek(d);
-  return Math.floor(monday.getTime() / (7 * 24 * 3600 * 1000));
 }

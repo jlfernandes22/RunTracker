@@ -424,8 +424,3 @@ export const loading = {
     height: 4,
   },
 } as const;
-
-export function isReduceMotionEnabled(): boolean {
-  const { AccessibilityInfo } = require('react-native');
-  return AccessibilityInfo.isReduceMotionEnabled();
-}

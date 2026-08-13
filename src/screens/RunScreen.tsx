@@ -4,7 +4,8 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+import { spacing, radii } from '../theme/colors';
+import { overlayTokens } from '../theme/tokens';
 
 import { session, Snapshot } from '../services/RunSession';
 import { RunState } from '../types';

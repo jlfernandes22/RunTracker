@@ -37,13 +37,18 @@ export function HistoryScreen() {
   const [weekCount, setWeekCount] = useState(0);
 
   const load = useCallback(() => {
-    db.getAllRuns().then((all) => {
-      setRuns(all);
-      setWeekKm(weekDistanceM(all) / 1000);
-      setStreakDays(currentStreakDays(all.map((r) => new Date(r.start_time).getTime())));
-      const monday = startOfWeek(new Date()).getTime();
-      setWeekCount(all.filter((r) => new Date(r.start_time).getTime() >= monday).length);
-    });
+    db.getAllRuns()
+      .then((all) => {
+        setRuns(all);
+        setWeekKm(weekDistanceM(all) / 1000);
+        setStreakDays(currentStreakDays(all.map((r) => new Date(r.start_time).getTime())));
+        const monday = startOfWeek(new Date()).getTime();
+        setWeekCount(all.filter((r) => new Date(r.start_time).getTime() >= monday).length);
+      })
+      .catch((e) => {
+        console.warn('failed to load runs', e);
+        setRuns([]);
+      });
   }, []);
 
   useFocusEffect(

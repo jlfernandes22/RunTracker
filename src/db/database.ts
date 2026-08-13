@@ -56,6 +56,14 @@ async function dbOp<T>(op: (db: SQLiteDatabase) => Promise<T>): Promise<T> {
   }
 }
 
+function safeJsonParse<T>(raw: string, fallback: T): T {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
 function parseRowToRun(row: any): Run {
   return {
     id: row.id,
@@ -63,7 +71,7 @@ function parseRowToRun(row: any): Run {
     end_time: row.end_time,
     duration_s: row.duration_s,
     distance_m: row.distance_m,
-    polyline: JSON.parse(row.polyline),
+    polyline: safeJsonParse(row.polyline, []),
     notes: row.notes,
     paused_s: row.paused_s,
   };
@@ -73,7 +81,7 @@ function parseRowToRoute(row: any): SavedRoute {
   return {
     id: row.id,
     name: row.name,
-    waypoints: JSON.parse(row.waypoints),
+    waypoints: safeJsonParse(row.waypoints, []),
     distance_m: row.distance_m,
     created_at: row.created_at,
   };

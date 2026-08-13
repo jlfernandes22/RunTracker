@@ -22,26 +22,33 @@ export async function exportBackup(): Promise<string | null> {
     settings,
   };
 
-  const dir = new Directory(Paths.document, 'runtracker_backups');
-  dir.create({ intermediates: true, idempotent: true });
-  const jsonFile = new File(dir, JSON_NAME);
-  jsonFile.write(JSON.stringify(data, null, 2));
-
-  const gpxDir = new Directory(dir, 'gpx');
-  gpxDir.create({ idempotent: true });
-  for (const run of runs) {
-    const gpxFile = new File(gpxDir, `${run.id}.gpx`);
-    if (!gpxFile.exists) {
-      gpxFile.write(toGpx(run));
-    }
-  }
-
   const stamp = new Date()
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '');
-  const zipPath = `${dir.uri}/backup_${stamp}.zip`;
-  await zip(dir.uri, zipPath);
+
+  // Stage into a fresh cache dir so a second export never re-zips stale GPX
+  // files (from deleted runs) or a previously written backup.zip.
+  const stage = new Directory(Paths.cache, `runtracker_export_${Date.now()}`);
+  stage.create({ intermediates: true, idempotent: true });
+  const jsonFile = new File(stage, JSON_NAME);
+  jsonFile.write(JSON.stringify(data, null, 2));
+
+  const gpxDir = new Directory(stage, 'gpx');
+  gpxDir.create();
+  for (const run of runs) {
+    const gpxFile = new File(gpxDir, `${run.id}.gpx`);
+    gpxFile.write(toGpx(run));
+  }
+
+  const outDir = new Directory(Paths.document, 'runtracker_backups');
+  outDir.create({ intermediates: true, idempotent: true });
+  const zipPath = `${outDir.uri}/backup_${stamp}.zip`;
+  await zip(stage.uri, zipPath);
+
+  try {
+    stage.delete();
+  } catch {}
 
   return zipPath;
 }

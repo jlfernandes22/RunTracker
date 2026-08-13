@@ -24,7 +24,12 @@ export function PlanScreen() {
   const [routes, setRoutes] = useState<SavedRoute[] | null>(null);
 
   const load = useCallback(() => {
-    db.getAllRoutes().then(setRoutes);
+    db.getAllRoutes()
+      .then(setRoutes)
+      .catch((e) => {
+        console.warn('failed to load routes', e);
+        setRoutes([]);
+      });
   }, []);
 
   useFocusEffect(
@@ -72,7 +77,7 @@ export function PlanScreen() {
         <BigButton
           label="New route"
           icon="add"
-          onPress={() => navigation.navigate('MapPlanner' as never)}
+          onPress={() => navigation.navigate('MapPlanner')}
           variant="secondary"
           accessibilityHint="Open the map to plan a route by tapping waypoints"
         />

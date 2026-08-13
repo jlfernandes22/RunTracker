@@ -2,11 +2,11 @@ import React from 'react';
 import { Text } from 'react-native-paper';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
-import { AppIcon } from './AppIcon';
+import { AppIcon, AppIconName } from './AppIcon';
 import { spacing } from '../theme/colors';
 
 interface Props {
-  icon: string;
+  icon: AppIconName;
   title: string;
   subtitle?: string;
 }
@@ -16,7 +16,7 @@ export function EmptyState({ icon, title, subtitle }: Props) {
 
   return (
     <View style={styles.wrap} accessibilityLabel={`${title}. ${subtitle ?? ''}`}>
-      <AppIcon name={icon as any} size={48} color={palette.textMuted} />
+      <AppIcon name={icon} size={48} color={palette.textMuted} />
       <Text variant="titleLarge" style={[styles.title, { color: palette.text }]} maxFontSizeMultiplier={2}>
         {title}
       </Text>

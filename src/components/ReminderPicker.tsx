@@ -3,7 +3,8 @@ import { Chip, Text } from 'react-native-paper';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';import { overlayTokens } from '../theme/tokens';
+import { spacing, radii } from '../theme/colors';
+import { overlayTokens } from '../theme/tokens';
 
 import { BigButton } from './BigButton';
 import { AppIcon } from './AppIcon';

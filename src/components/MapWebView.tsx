@@ -1,7 +1,8 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 
 import * as Location from 'expo-location';
-import { StyleSheet, View, DimensionValue } from 'react-native';import { overlayTokens } from '../theme/tokens';
+import { StyleSheet, View, DimensionValue } from 'react-native';
+import { overlayTokens } from '../theme/tokens';
 
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { GeoPoint } from '../types';
@@ -167,7 +168,7 @@ export const MapWebView = forwardRef<MapWebViewHandle, Props>(function MapWebVie
         ref={webRef}
         source={{ html: MAP_HTML, baseUrl: 'https://map.local' }}
         onMessage={onMessage}
-        style={{ flex: 1, backgroundColor: overlayTokens.mapCanvasLight }}
+        style={{ flex: 1, backgroundColor: theme === 'dark' ? overlayTokens.mapCanvasDark : overlayTokens.mapCanvasLight }}
         originWhitelist={['*']}
         mixedContentMode="always"
         javaScriptEnabled

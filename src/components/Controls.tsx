@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { List, Switch } from 'react-native-paper';
+import { List, Switch, Text } from 'react-native-paper';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
 
@@ -12,7 +12,7 @@ interface SettingRowProps {
   style?: ViewStyle;
 }
 
-export function SettingRow({ label, onPress, hint, style }: SettingRowProps) {
+export function SettingRow({ label, value, onPress, hint, style }: SettingRowProps) {
   const { palette } = useTheme();
   return (
     <List.Item
@@ -25,6 +25,9 @@ export function SettingRow({ label, onPress, hint, style }: SettingRowProps) {
       descriptionStyle={{ color: palette.onSurfaceVariant }}
       right={() => (
         <View style={styles.rowRight}>
+          <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }}>
+            {value}
+          </Text>
           <List.Icon icon="chevron-right" color={palette.onSurfaceVariant} />
         </View>
       )}
@@ -87,7 +90,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   rowRight: {
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
   },
   section: {
     paddingHorizontal: spacing.lg - 8,

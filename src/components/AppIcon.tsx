@@ -1,6 +1,6 @@
 import React from 'react';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';import { overlayTokens } from '../theme/tokens';
-
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { overlayTokens } from '../theme/tokens';
 
 export type AppIconName =
   | 'directions-run'

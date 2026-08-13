@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { isDarkHex } from './src/theme/colors';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { DialogProvider } from './src/components/Dialog';
 import { setupChannels } from './src/services/notifications';
@@ -27,10 +28,7 @@ function ThemedPaperProvider({ children }: { children: React.ReactNode }) {
 
 function ThemedApp() {
   const { palette } = useTheme();
-  const r = parseInt(palette.background.slice(1, 3), 16);
-  const g = parseInt(palette.background.slice(3, 5), 16);
-  const b = parseInt(palette.background.slice(5, 7), 16);
-  const isDarkBackground = 0.3 * r + 0.6 * g + 0.1 * b < 128;
+  const isDarkBackground = isDarkHex(palette.background);
   return (
     <>
       <StatusBar barStyle={isDarkBackground ? 'light-content' : 'dark-content'} />

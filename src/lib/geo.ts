@@ -28,11 +28,6 @@ export function formatDistance(meters: number): string {
   return `${Math.round(meters)} m`;
 }
 
-export function formatDistanceShort(meters: number): string {
-  if (meters >= 1000) return `${(meters / 1000).toFixed(2)}`;
-  return `${Math.round(meters)}`;
-}
-
 export function formatDuration(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   const h = Math.floor(s / 3600);
@@ -45,8 +40,11 @@ export function formatDuration(totalSeconds: number): string {
 }
 
 export function formatPace(secondsPerKm: number | null): string {
-  if (secondsPerKm == null || !isFinite(secondsPerKm)) return '--:--';
-  return `${Math.floor(secondsPerKm / 60)}:${String(Math.round(secondsPerKm % 60)).padStart(2, '0')} /km`;
+  if (secondsPerKm == null || !isFinite(secondsPerKm) || secondsPerKm < 0) return '--:--';
+  const total = Math.round(secondsPerKm);
+  const min = Math.floor(total / 60);
+  const sec = total % 60;
+  return `${min}:${String(sec).padStart(2, '0')} /km`;
 }
 
 export function speedFromRecentPoints(points: GeoPoint[], lookbackMs: number): number | null {

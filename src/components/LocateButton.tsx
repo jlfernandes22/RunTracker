@@ -51,7 +51,7 @@ export function LocateButton({ mapHandle, onError }: Props) {
       ]}
     >
       {busy ? (
-        <LoadingIndicator size={22} color={palette.primary} />
+        <LoadingIndicator size={22} color={palette.text} />
       ) : (
         <AppIcon name="my-location" size={22} color={palette.text} />
       )}
