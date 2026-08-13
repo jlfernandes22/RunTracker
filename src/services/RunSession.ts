@@ -243,7 +243,8 @@ class RunSession {
       }
       audio.cue('lap');
       if (this.speechEnabled && !isScreenReaderOn()) {
-        audio.speak(`${formatKmText(distance)} kilometer`);
+        const km = formatKmText(distance);
+        audio.speak(`${km} kilometer${Number(km) > 1 ? 's' : ''}`);
       }
       this.nextKmBoundary += KM;
     }

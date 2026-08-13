@@ -14,6 +14,7 @@ import { MapWebView } from '../components/MapWebView';
 import { BigButton } from '../components/BigButton';
 import { audio } from '../services/AudioCue';
 import { PlanStackParamList } from '../navigation/RootNavigator';
+import { Skeleton } from '../components/Skeleton';
 
 export function RouteDetailScreen() {
   const { palette } = useTheme();
@@ -21,16 +22,38 @@ export function RouteDetailScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<PlanStackParamList, 'RouteDetail'>>();
-  const [saved, setSaved] = useState<SavedRoute | null>(null);
+  const [saved, setSaved] = useState<SavedRoute | null | undefined>(undefined);
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
+    setSaved(undefined);
     db.getAllRoutes().then((all) => {
       setSaved(all.find((r) => r.id === route.params.routeId) ?? null);
     });
   }, [route.params.routeId]);
 
-  if (!saved) return null;
+  if (saved === undefined) {
+    return (
+      <View style={[styles.container, { backgroundColor: palette.background, padding: spacing.lg, gap: spacing.md }]}>
+        <Skeleton width="70%" height={24} />
+        <Skeleton width="100%" height={280} radius={16} />
+        <Skeleton width="100%" height={88} />
+      </View>
+    );
+  }
+
+  if (saved === null) {
+    return (
+      <View style={[styles.container, styles.notFound, { backgroundColor: palette.background }]}>
+        <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+          Route not found
+        </Text>
+        <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+          This route may have been deleted.
+        </Text>
+      </View>
+    );
+  }
 
   const summary =
     `Route ${saved.name}. ${formatDistance(saved.distance_m)} straight-line distance, ${saved.waypoints.length} waypoints. ` +
@@ -133,6 +156,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     marginTop: spacing.sm,
+  },
+  notFound: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.xl,
   },
   mapWrap: {
     borderRadius: 12,

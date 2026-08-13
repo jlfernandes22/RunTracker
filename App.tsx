@@ -14,6 +14,7 @@ import { isDarkHex } from './src/theme/colors';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { DialogProvider } from './src/components/Dialog';
 import { setupChannels } from './src/services/notifications';
+import { darkColors } from './src/theme/tokens';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 
 /**
@@ -53,7 +54,7 @@ function App() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <ThemeProvider>
-            <View style={{ flex: 1, backgroundColor: '#131315' }} />
+            <View style={{ flex: 1, backgroundColor: darkColors.background }} />
           </ThemeProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>

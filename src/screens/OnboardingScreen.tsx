@@ -3,6 +3,7 @@ import { Text } from 'react-native-paper';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
+import { useDialog } from '../components/Dialog';
 import { spacing, radii } from '../theme/colors';
 import { AppIcon, AppIconName } from '../components/AppIcon';
 import { BigButton } from '../components/BigButton';
@@ -48,6 +49,7 @@ const FEATURES: Feature[] = [
 
 export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const { palette } = useTheme();
+  const dialog = useDialog();
   const [step, setStep] = useState(0);
   const [sound, setSound] = useState(true);
   const [vibration, setVibration] = useState(true);
@@ -60,21 +62,33 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const [busy, setBusy] = useState(false);
 
   const finish = useCallback(async () => {
+    if (busy) return;
     setBusy(true);
-    await db.setSetting('run.soundCues', String(sound));
-    await db.setSetting('run.vibration', String(vibration));
-    await db.setSetting('run.speechCues', String(speech));
-    await db.setSetting('run.autoPause', String(autoPause));
-    setSoundEnabled(sound);
-    setVibrationEnabled(vibration);
-    if (reminders) {
-      await requestNotificationPermission();
-      const prefs: NotificationPrefs = { ...DEFAULT_PREFS, enabled: true, days, hour, minute };
-      await savePrefs(prefs);
+    try {
+      await db.setSetting('run.soundCues', String(sound));
+      await db.setSetting('run.vibration', String(vibration));
+      await db.setSetting('run.speechCues', String(speech));
+      await db.setSetting('run.autoPause', String(autoPause));
+      setSoundEnabled(sound);
+      setVibrationEnabled(vibration);
+      if (reminders) {
+        await requestNotificationPermission();
+        const prefs: NotificationPrefs = { ...DEFAULT_PREFS, enabled: true, days, hour, minute };
+        await savePrefs(prefs);
+      }
+      await db.setSetting('onboarding.completed', 'true');
+      onDone();
+    } catch (e) {
+      console.warn('[onboarding] finish failed', e);
+      dialog.alert({
+        title: 'Something went wrong',
+        message: 'Could not save your preferences. Please try again.',
+        buttons: [{ label: 'OK' }],
+      });
+    } finally {
+      setBusy(false);
     }
-    await db.setSetting('onboarding.completed', 'true');
-    onDone();
-  }, [sound, vibration, speech, autoPause, reminders, days, hour, minute, onDone]);
+  }, [busy, sound, vibration, speech, autoPause, reminders, days, hour, minute, onDone, dialog]);
 
   const requestLocation = useCallback(async () => {
     try {

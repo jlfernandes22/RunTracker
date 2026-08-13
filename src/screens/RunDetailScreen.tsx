@@ -26,23 +26,26 @@ export function RunDetailScreen() {
   const dialog = useDialog();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<HistoryStackParamList, 'RunDetail'>>();
-  const [run, setRun] = useState<Run | null>(null);
+  const [run, setRun] = useState<Run | null | undefined>(undefined);
   const [showText, setShowText] = useState(false);
   const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [notesDraft, setNotesDraft] = useState('');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
+    setRun(undefined);
     db.getAllRuns().then((all) => {
       const found = all.find((r) => r.id === route.params.runId);
       if (found) {
         setRun(found);
         setNotes(found.notes ?? '');
+      } else {
+        setRun(null);
       }
     });
   }, [route.params.runId]);
 
-  if (!run) {
+  if (run === undefined) {
     return (
       <View style={[styles.container, { backgroundColor: palette.background, padding: spacing.lg, gap: spacing.md }]}>
         <Skeleton width="60%" height={24} />
@@ -52,6 +55,19 @@ export function RunDetailScreen() {
           <Skeleton style={{ flex: 1 }} height={88} />
           <Skeleton style={{ flex: 1 }} height={88} />
         </View>
+      </View>
+    );
+  }
+
+  if (run === null) {
+    return (
+      <View style={[styles.container, styles.notFound, { backgroundColor: palette.background }]}>
+        <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+          Run not found
+        </Text>
+        <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+          This run may have been deleted.
+        </Text>
       </View>
     );
   }
@@ -255,6 +271,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
     paddingBottom: spacing.xxl,
+  },
+  notFound: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.xl,
   },
   mapWrap: {
     borderRadius: 12,
