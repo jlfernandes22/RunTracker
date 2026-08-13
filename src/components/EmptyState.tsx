@@ -9,14 +9,16 @@ interface Props {
   icon: AppIconName;
   title: string;
   subtitle?: string;
+  /** Visual icon size in dp (some Material glyphs have less ink than others). */
+  iconSize?: number;
 }
 
-export function EmptyState({ icon, title, subtitle }: Props) {
+export function EmptyState({ icon, title, subtitle, iconSize = 48 }: Props) {
   const { palette } = useTheme();
 
   return (
     <View style={styles.wrap} accessibilityLabel={`${title}. ${subtitle ?? ''}`}>
-      <AppIcon name={icon} size={48} color={palette.textMuted} />
+      <AppIcon name={icon} size={iconSize} color={palette.textMuted} />
       <Text variant="titleLarge" style={[styles.title, { color: palette.text }]} maxFontSizeMultiplier={2}>
         {title}
       </Text>

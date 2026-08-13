@@ -195,7 +195,8 @@ export function HistoryScreen() {
           <EmptyState
             icon="directions-run"
             title="No runs yet"
-            subtitle="Go for your first run using the Run tab."
+            subtitle="Record your first run from the Run tab. Distance, pace and splits will show up here."
+            iconSize={56}
           />
         }
         renderItem={({ item, index }) => {
