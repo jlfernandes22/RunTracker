@@ -19,12 +19,25 @@
 
 ## 📱 App Showcase
 
+### ☀️ Light Theme (Material Design 3)
+
 <div align="center">
 
-| Active Run & Live Map | Activity History & Streaks | Route Planning & Waypoints | App Settings & Theming |
+| Run & Live GPS | Activity History & Streaks | Route Planning & Waypoints | Settings & Theming |
 |:---:|:---:|:---:|:---:|
-| <img src="screenshots/02-run-recording-light.png" width="220" /> | <img src="screenshots/03-history-light.png" width="220" /> | <img src="screenshots/06-route-planner-light.png" width="220" /> | <img src="screenshots/08-settings-light.png" width="220" /> |
-| *Real-time GPS HUD & Live Route* | *Weekly Goals, Streaks & Splits* | *Interactive Waypoint Routing* | *M3 Expressive, Contrast & Scale* |
+| <img src="screenshots/01-run-light.png" width="220" /> | <img src="screenshots/02-history-light.png" width="220" /> | <img src="screenshots/03-route-planner-light.png" width="220" /> | <img src="screenshots/04-settings-light.png" width="220" /> |
+| *Real-time GPS HUD & Map* | *Weekly Goals & Streak Rings* | *Interactive Vector Waypoints* | *MD3 Theme & Accessibility* |
+
+</div>
+
+### 🌙 Dark Theme (Material Design 3)
+
+<div align="center">
+
+| Run & Live GPS | Activity History & Streaks | Route Planning & Waypoints | Settings & Theming |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/05-run-dark.png" width="220" /> | <img src="screenshots/06-history-dark.png" width="220" /> | <img src="screenshots/07-route-planner-dark.png" width="220" /> | <img src="screenshots/08-settings-dark.png" width="220" /> |
+| *OLED-Optimized Night HUD* | *Dark Activity Timeline* | *Dark Vector Waypoint Routing* | *M3 Tonal Surface Hierarchy* |
 
 </div>
 
