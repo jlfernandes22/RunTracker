@@ -30,14 +30,14 @@
 
 </div>
 
-### 🌙 Dark Theme (Material Design 3)
+### 🌙 Dark Theme (Material Design 3 & AMOLED Pitch Black)
 
 <div align="center">
 
 | Run & Live GPS | Activity History & Streaks | Route Planning & Waypoints | Settings & Theming |
 |:---:|:---:|:---:|:---:|
 | <img src="screenshots/05-run-dark.png" width="220" /> | <img src="screenshots/06-history-dark.png" width="220" /> | <img src="screenshots/07-route-planner-dark.png" width="220" /> | <img src="screenshots/08-settings-dark.png" width="220" /> |
-| *OLED-Optimized Night HUD* | *Dark Activity Timeline* | *Dark Vector Waypoint Routing* | *M3 Tonal Surface Hierarchy* |
+| *True OLED Pitch Black HUD* | *Pure #000000 Timeline* | *Dark Vector Waypoint Routing* | *AMOLED & Contrast Controls* |
 
 </div>
 
@@ -70,7 +70,7 @@
 
 ### ♿ Accessibility & Inclusivity (WCAG 2.2 AA)
 - **Large Touch Targets**: Minimum 48dp (primary actions 60dp+) interactive touch targets.
-- **Material 3 Dynamic Theming**: Supports Light, Dark, System, and High-Contrast palettes.
+- **Material 3 Dynamic Theming**: Supports Light, Dark (M3 Charcoal), AMOLED Pitch Black (`#000000`), System, and High-Contrast palettes.
 - **Font & Display Scaling**: Integrated text scaling multiplier (100% to 150%) with dynamic wrapping and truncation protection.
 - **Reduce Motion Support**: Cleanly toggles spring physics and transitions for users sensitive to motion.
 
@@ -86,7 +86,7 @@ RunTracker implements Google's **Material Design 3 (M3 Expressive)** design spec
 ├────────────────────────────────────────────────────────┤
 │  • Surface Container Hierarchy (Lowest → Highest)      │
 │  • Primary / Secondary / Tertiary / Error Containers   │
-│  • Full Dark, Light & High-Contrast Mode Palettes      │
+│  • Light, Dark, AMOLED Pitch Black & High-Contrast     │
 │  • Physics-Based Springs (spatialFast, spatialDefault) │
 │  • 7-Shape Parametric Morphing Loading Indicators      │
 │  • Synchronized Content-Fidelity Shimmer Skeletons     │

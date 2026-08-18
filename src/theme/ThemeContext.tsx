@@ -10,7 +10,9 @@ import { TextStyle, useColorScheme } from 'react-native';
 import type { MD3Theme } from './index';
 import { isDarkHex } from './colors';
 import {
+  amoledDarkColors,
   darkColors,
+  highContrastAmoledDarkColors,
   highContrastDarkColors,
   highContrastLightColors,
   lightColors,
@@ -26,6 +28,8 @@ export interface ThemeSettings {
   fontScale: number;
   /** Manual theme override (default: follow the device). */
   themeMode: ThemeMode;
+  /** Pure pitch-black OLED background for dark mode. */
+  amoledBlack: boolean;
 }
 
 export interface Typography {
@@ -97,6 +101,7 @@ export interface Theme {
   setReduceMotion: (v: boolean) => void;
   setFontScale: (v: number) => void;
   setThemeMode: (v: ThemeMode) => void;
+  setAmoledBlack: (v: boolean) => void;
 }
 
 const ThemeContext = createContext<Theme | null>(null);
@@ -108,6 +113,7 @@ const DEFAULT_SETTINGS: ThemeSettings = {
   reduceMotion: false,
   fontScale: 1,
   themeMode: 'system',
+  amoledBlack: false,
 };
 
 function buildPalette(
@@ -212,35 +218,55 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     (v: ThemeMode) => persist({ ...settings, themeMode: v }),
     [persist, settings],
   );
+  const setAmoledBlack = useCallback(
+    (v: boolean) => persist({ ...settings, amoledBlack: v }),
+    [persist, settings],
+  );
 
   const isDark =
     settings.themeMode === 'system' ? systemScheme === 'dark' : settings.themeMode === 'dark';
   const { paperTheme, palette } = useMemo(() => {
     if (settings.highContrast) {
-      const { highContrastDarkTheme, highContrastLightTheme } = require('./index');
-      const colors = isDark ? highContrastDarkColors : highContrastLightColors;
+      const { highContrastDarkTheme, highContrastLightTheme, highContrastAmoledDarkTheme } = require('./index');
+      const colors = isDark
+        ? settings.amoledBlack
+          ? highContrastAmoledDarkColors
+          : highContrastDarkColors
+        : highContrastLightColors;
       const status = isDark
         ? { success: statusColors.successOnDark, warning: statusColors.warningOnDark }
         : { success: statusColors.success, warning: statusColors.warning };
-      const theme = isDark ? highContrastDarkTheme : highContrastLightTheme;
+      const theme = isDark
+        ? settings.amoledBlack
+          ? highContrastAmoledDarkTheme
+          : highContrastDarkTheme
+        : highContrastLightTheme;
       const scaled = scalePaperFonts(theme, settings.fontScale);
       return {
         paperTheme: scaled,
         palette: buildPalette(colors, status),
       };
     }
-    const { darkTheme, lightTheme } = require('./index');
-    const colors = isDark ? darkColors : lightColors;
+    const { darkTheme, lightTheme, amoledDarkTheme } = require('./index');
+    const colors = isDark
+      ? settings.amoledBlack
+        ? amoledDarkColors
+        : darkColors
+      : lightColors;
     const status = isDark
       ? { success: statusColors.successOnDark, warning: statusColors.warningOnDark }
       : { success: statusColors.success, warning: statusColors.warning };
-    const theme = isDark ? darkTheme : lightTheme;
+    const theme = isDark
+      ? settings.amoledBlack
+        ? amoledDarkTheme
+        : darkTheme
+      : lightTheme;
     const scaled = scalePaperFonts(theme, settings.fontScale);
     return {
       paperTheme: scaled,
       palette: buildPalette(colors, status),
     };
-  }, [isDark, settings.highContrast, settings.fontScale]);
+  }, [isDark, settings.highContrast, settings.amoledBlack, settings.fontScale]);
 
   const typography = useMemo(() => buildTypography(settings.fontScale), [settings.fontScale]);
 
@@ -254,6 +280,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setReduceMotion,
       setFontScale,
       setThemeMode,
+      setAmoledBlack,
     }),
     [
       palette,
@@ -264,6 +291,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setReduceMotion,
       setFontScale,
       setThemeMode,
+      setAmoledBlack,
     ],
   );
 

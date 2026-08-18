@@ -24,7 +24,15 @@ import { setSoundEnabled, setVibrationEnabled } from '../services/AudioCue';
 import { MergeStrategy } from '../types';
 
 export function SettingsScreen() {
-  const { palette, settings, setHighContrast, setReduceMotion, setFontScale, setThemeMode } = useTheme();
+  const {
+    palette,
+    settings,
+    setHighContrast,
+    setReduceMotion,
+    setFontScale,
+    setThemeMode,
+    setAmoledBlack,
+  } = useTheme();
   const dialog = useDialog();
   const [prefs, setPrefs] = useState<NotificationPrefs>({ ...DEFAULT_PREFS });
   const [autoPause, setAutoPause] = useState(true);
@@ -172,6 +180,12 @@ export function SettingsScreen() {
               ]}
             />
           </View>
+          <ToggleRow
+            label="AMOLED / Pitch Black"
+            hint="Pure #000000 black background for OLED screens (in dark mode)"
+            value={settings.amoledBlack}
+            onValueChange={setAmoledBlack}
+          />
           <ToggleRow
             label="High contrast theme"
             hint="Switches to a high-contrast palette with strong color contrast"

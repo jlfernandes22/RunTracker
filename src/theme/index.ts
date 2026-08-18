@@ -4,7 +4,9 @@
 import { MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 import type { MD3Theme } from 'react-native-paper';
 import {
+  amoledDarkColors,
   darkColors,
+  highContrastAmoledDarkColors,
   highContrastDarkColors,
   highContrastLightColors,
   lightColors,
@@ -109,8 +111,10 @@ function buildTheme(dark: boolean, colors: MD3RoleColors): MD3Theme {
 
 export const lightTheme = buildTheme(false, lightColors);
 export const darkTheme = buildTheme(true, darkColors);
+export const amoledDarkTheme = buildTheme(true, amoledDarkColors);
 export const highContrastLightTheme = buildTheme(false, highContrastLightColors);
 export const highContrastDarkTheme = buildTheme(true, highContrastDarkColors);
+export const highContrastAmoledDarkTheme = buildTheme(true, highContrastAmoledDarkColors);
 
 export type { MD3Theme };
 export { elevation };
