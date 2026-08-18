@@ -2,6 +2,8 @@
 
 <div align="center">
 
+[![Latest Release](https://img.shields.io/github/v/release/jlfernandes22/RunTracker?style=for-the-badge&logo=github&color=blue)](https://github.com/jlfernandes22/RunTracker/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download-APK%20(v1.0.0)-FF6D00?style=for-the-badge&logo=android&logoColor=white)](https://github.com/jlfernandes22/RunTracker/releases/latest/download/RunTracker-v1.0.0.apk)
 ![Platform](https://img.shields.io/badge/Platform-Android%2010%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![React Native](https://img.shields.io/badge/React%20Native-0.86%20(React%2019)-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
@@ -11,7 +13,7 @@
 **An ultra-responsive, privacy-first running companion and route planner for Android.**  
 *Zero cloud dependencies, zero telemetry, zero analytics. Everything is recorded and processed 100% on your device.*
 
-[Features](#-key-features) • [Design System](#-material-design-3-system) • [Architecture](#-architecture--engine) • [Getting Started](#-getting-started) • [Release Build](#-production-release-build) • [Privacy & Permissions](#-permissions--privacy)
+[Download APK](https://github.com/jlfernandes22/RunTracker/releases/latest/download/RunTracker-v1.0.0.apk) • [Features](#-key-features) • [Design System](#-material-design-3-system) • [Architecture](#-architecture--engine) • [Getting Started](#-getting-started) • [Release Build](#-production-release-build) • [Privacy & Permissions](#-permissions--privacy)
 
 </div>
 
