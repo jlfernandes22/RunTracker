@@ -180,12 +180,18 @@ export function SettingsScreen() {
               ]}
             />
           </View>
-          <ToggleRow
-            label="AMOLED / Pitch Black"
-            hint="Pure #000000 black background for OLED screens (in dark mode)"
-            value={settings.amoledBlack}
-            onValueChange={setAmoledBlack}
-          />
+          {settings.themeMode !== 'light' ? (
+            <ToggleRow
+              label="AMOLED / Pitch Black"
+              hint={
+                settings.themeMode === 'system'
+                  ? 'Pure #000000 black background when system is in dark mode'
+                  : 'Pure #000000 black background for OLED screens'
+              }
+              value={settings.amoledBlack}
+              onValueChange={setAmoledBlack}
+            />
+          ) : null}
           <ToggleRow
             label="High contrast theme"
             hint="Switches to a high-contrast palette with strong color contrast"
