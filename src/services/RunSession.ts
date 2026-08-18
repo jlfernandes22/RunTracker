@@ -58,6 +58,7 @@ class RunSession {
   private autoPauseEnabled = true;
   private speechEnabled = true;
   private lastAccuracy: number | null = null;
+  private accumulatedDistanceM = 0;
 
   getState(): RunState {
     return this.state;
@@ -85,7 +86,7 @@ class RunSession {
   snapshot(): Snapshot {
     return {
       state: this.state,
-      distanceM: this.totalDistance(),
+      distanceM: this.accumulatedDistanceM,
       elapsedS: this.elapsedS(),
       pausedS: this.pausedS(),
       currentPaceS: this.currentPaceS,
@@ -98,11 +99,7 @@ class RunSession {
   }
 
   private totalDistance(): number {
-    let total = 0;
-    for (let i = 1; i < this.points.length; i++) {
-      total += haversine(this.points[i - 1], this.points[i]);
-    }
-    return total;
+    return this.accumulatedDistanceM;
   }
 
   private elapsedS(): number {
@@ -228,11 +225,13 @@ class RunSession {
 
     if (this.points.length > 0) {
       const prev = this.points[this.points.length - 1];
-      if (haversine(prev, point) < 1) return;
+      const d = haversine(prev, point);
+      if (d < 1) return;
+      this.accumulatedDistanceM += d;
     }
     this.points.push(point);
 
-    const distance = this.totalDistance();
+    const distance = this.accumulatedDistanceM;
     if (distance >= this.nextKmBoundary) {
       this.prevKmCompletedAt = this.lastKmCompletedAt;
       this.lastKmCompletedAt = Date.now();
@@ -304,7 +303,11 @@ class RunSession {
       ts: Date.now(),
     };
     const last = this.points[this.points.length - 1];
-    if (last && haversine(last, point) < 1) return;
+    if (last) {
+      const d = haversine(last, point);
+      if (d < 1) return;
+      this.accumulatedDistanceM += d;
+    }
     this.points.push(point);
     this.lastAccuracy = accuracy;
     const speed = speedFromRecentPoints(this.points, 20000);
@@ -322,6 +325,7 @@ class RunSession {
 
     this.state = 'recording';
     this.points = [];
+    this.accumulatedDistanceM = 0;
     this.lastAccuracy = null;
     // The clock starts on the first GPS fix so pre-fix time never pollutes pace.
     this.startTs = null;
@@ -409,6 +413,7 @@ class RunSession {
 
     this.state = 'idle';
     this.points = [];
+    this.accumulatedDistanceM = 0;
     this.startTs = null;
     this.pausedAccumS = 0;
     audio.cue('stop');
@@ -515,6 +520,7 @@ class RunSession {
 
   async resumeFromCheckpoint(cp: Checkpoint) {
     this.points = cp.run.polyline;
+    this.accumulatedDistanceM = cp.run.distance_m ?? 0;
     this.startTs = new Date(cp.run.start_time).getTime();
     // cp.run.paused_s includes the in-flight pause (saved while paused); strip it
     // here so the ongoing pause is not counted twice when it is later resumed.

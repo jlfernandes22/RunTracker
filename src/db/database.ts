@@ -4,35 +4,52 @@ import { Run, SavedRoute, SettingsMap } from '../types';
 const DB_NAME = 'runtracker.db';
 
 let _db: SQLiteDatabase | null = null;
+let _initPromise: Promise<SQLiteDatabase> | null = null;
 
 export async function getDb(): Promise<SQLiteDatabase> {
   if (_db) return _db;
-  const database = await openDatabaseAsync(DB_NAME);
-  await database.execAsync(`
-    CREATE TABLE IF NOT EXISTS runs (
-      id TEXT PRIMARY KEY,
-      start_time TEXT NOT NULL,
-      end_time TEXT NOT NULL,
-      duration_s REAL NOT NULL,
-      distance_m REAL NOT NULL,
-      polyline TEXT NOT NULL,
-      notes TEXT,
-      paused_s REAL NOT NULL DEFAULT 0
-    );
-    CREATE TABLE IF NOT EXISTS routes (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      waypoints TEXT NOT NULL,
-      distance_m REAL NOT NULL,
-      created_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT
-    );
-  `);
-  _db = database;
-  return database;
+  if (_initPromise) return _initPromise;
+
+  _initPromise = (async () => {
+    try {
+      const database = await openDatabaseAsync(DB_NAME);
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS runs (
+          id TEXT PRIMARY KEY,
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          duration_s REAL NOT NULL,
+          distance_m REAL NOT NULL,
+          polyline TEXT NOT NULL,
+          notes TEXT,
+          paused_s REAL NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_runs_start_time ON runs (start_time DESC);
+
+        CREATE TABLE IF NOT EXISTS routes (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          waypoints TEXT NOT NULL,
+          distance_m REAL NOT NULL,
+          created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_routes_created_at ON routes (created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS settings (
+          key TEXT PRIMARY KEY,
+          value TEXT
+        );
+      `);
+      _db = database;
+      return database;
+    } catch (e) {
+      _initPromise = null;
+      _db = null;
+      throw e;
+    }
+  })();
+
+  return _initPromise;
 }
 
 function isDeadDatabaseError(e: unknown): boolean {
@@ -44,13 +61,15 @@ function isDeadDatabaseError(e: unknown): boolean {
 // released underneath us (can happen when a dev-mode reload tears the JS
 // context down; guarded for release robustness too).
 async function dbOp<T>(op: (db: SQLiteDatabase) => Promise<T>): Promise<T> {
-  const database = await getDb();
+  let database = await getDb();
   try {
     return await op(database);
   } catch (e) {
     if (isDeadDatabaseError(e)) {
       _db = null;
-      return op(await getDb());
+      _initPromise = null;
+      database = await getDb();
+      return await op(database);
     }
     throw e;
   }
@@ -107,6 +126,16 @@ export const db = {
     });
   },
 
+  getRun(id: string): Promise<Run | null> {
+    return dbOp(async (database) => {
+      const row = await database.getFirstAsync<Record<string, any>>(
+        `SELECT * FROM runs WHERE id = ? LIMIT 1`,
+        [id],
+      );
+      return row ? parseRowToRun(row) : null;
+    });
+  },
+
   deleteRun(id: string): Promise<void> {
     return dbOp(async (database) => {
       await database.runAsync(`DELETE FROM runs WHERE id = ?`, [id]);
@@ -129,6 +158,16 @@ export const db = {
         `SELECT * FROM routes ORDER BY created_at DESC`,
       );
       return rows.map(parseRowToRoute);
+    });
+  },
+
+  getRoute(id: string): Promise<SavedRoute | null> {
+    return dbOp(async (database) => {
+      const row = await database.getFirstAsync<Record<string, any>>(
+        `SELECT * FROM routes WHERE id = ? LIMIT 1`,
+        [id],
+      );
+      return row ? parseRowToRoute(row) : null;
     });
   },
 
@@ -173,12 +212,14 @@ export const db = {
 
   importSettings(map: SettingsMap): Promise<void> {
     return dbOp(async (database) => {
-      for (const [key, value] of Object.entries(map)) {
-        await database.runAsync(
-          `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
-          [key, JSON.stringify(value)],
-        );
-      }
+      await database.withTransactionAsync(async () => {
+        for (const [key, value] of Object.entries(map)) {
+          await database.runAsync(
+            `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
+            [key, JSON.stringify(value)],
+          );
+        }
+      });
     });
   },
 

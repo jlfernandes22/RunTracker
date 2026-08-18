@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Easing as AnimatedEasing, Pressable } from 'react-native';
+import { Easing as AnimatedEasing, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   createAnimatedComponent,
   useAnimatedStyle,
@@ -7,11 +7,11 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
-import { Duration, Spring, toReanimatedSpring } from '../theme/tokens';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Duration, Spring, toReanimatedSpring, radii, spacing, typeScale } from '../theme/tokens';
+import { createBottomTabNavigator, TransitionPresets } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/ThemeContext';
 import { AppIcon, AppIconName } from '../components/AppIcon';
-import { typeScale } from '../theme/tokens';
+import { Text } from 'react-native-paper';
 import { RunScreen } from '../screens/RunScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { PlanScreen } from '../screens/PlanScreen';
@@ -50,75 +50,102 @@ const TABS: Record<keyof RootTabParamList, { icon: AppIconName; label: string }>
   Settings: { icon: 'settings', label: 'Settings' },
 };
 
+const AnimatedPressable = createAnimatedComponent(Pressable);
+
 /**
- * Tab icon with a spring pop on selection (spatialFast, MD3 press scale),
- * gated by reduce-motion. The icon scales 1.0 when active, 0.82 when idle.
+ * Material Design 3 Navigation Bar Item.
+ * Features:
+ * - 64x32dp active indicator pill in secondaryContainer
+ * - Icon tinting in onSecondaryContainer (focused) vs onSurfaceVariant (idle)
+ * - Label in onSurface (focused) vs onSurfaceVariant (idle)
+ * - Spring animation on selection (spatialFast)
  */
-function TabIcon({ icon, focused, color }: { icon: AppIconName; focused: boolean; color: string }) {
-  const { settings } = useTheme();
-  const scale = useSharedValue(focused ? 1 : 0.82);
+function MD3TabBarItem({
+  tabKey,
+  focused,
+  onPress,
+  onLongPress,
+  accessibilityLabel,
+}: {
+  tabKey: keyof RootTabParamList;
+  focused: boolean;
+  onPress?: ((e: any) => void) | null;
+  onLongPress?: ((e: any) => void) | null;
+  accessibilityLabel?: string;
+}) {
+  const { palette, settings } = useTheme();
+  const tabInfo = TABS[tabKey];
+
+  const pillScale = useSharedValue(focused ? 1 : 0);
+  const pressScale = useSharedValue(1);
 
   useEffect(() => {
     if (settings.reduceMotion) {
-      scale.value = focused ? 1 : 0.82;
+      pillScale.value = focused ? 1 : 0;
       return;
     }
-    scale.value = withSpring(focused ? 1 : 0.82, toReanimatedSpring(Spring.spatialFast));
-  }, [focused, settings.reduceMotion, scale]);
+    pillScale.value = withSpring(focused ? 1 : 0, toReanimatedSpring(Spring.spatialFast));
+  }, [focused, settings.reduceMotion, pillScale]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Animated.View style={animatedStyle}>
-      <AppIcon name={icon} size={26} color={color} />
-    </Animated.View>
-  );
-}
-
-const AnimatedTabButton = createAnimatedComponent(Pressable);
-
-/**
- * Tab button without the default grey ripple; the whole button squashes
- * slightly on press and springs back (MD3 spatialFast).
- */
-function TabBarButton(props: any) {
-  const { settings } = useTheme();
-  const scale = useSharedValue(1);
-
-  const pressIn = () => {
+  const onPressIn = () => {
     if (settings.reduceMotion) return;
-    scale.value = withSpring(0.9, toReanimatedSpring(Spring.spatialFast));
-  };
-  const pressOut = () => {
-    if (settings.reduceMotion) return;
-    scale.value = withSpring(1, toReanimatedSpring(Spring.spatialFast));
+    pressScale.value = withSpring(0.92, toReanimatedSpring(Spring.spatialFast));
   };
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const onPressOut = () => {
+    if (settings.reduceMotion) return;
+    pressScale.value = withSpring(1, toReanimatedSpring(Spring.spatialFast));
+  };
+
+  const pillAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: pillScale.value }, { scaleY: Math.max(0.6, pillScale.value) }],
+    opacity: pillScale.value,
   }));
 
-  const { onPress, onLongPress, children, style, ...rest } = props;
+  const containerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
+
+  const iconColor = focused ? palette.onSecondaryContainer : palette.onSurfaceVariant;
+  const labelColor = focused ? palette.onSurface : palette.onSurfaceVariant;
+
   return (
-    <AnimatedTabButton
-      {...rest}
+    <AnimatedPressable
       onPress={onPress}
       onLongPress={onLongPress}
-      onPressIn={pressIn}
-      onPressOut={pressOut}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: focused }}
+      accessibilityLabel={accessibilityLabel ?? tabInfo.label}
       android_ripple={{ color: 'transparent' }}
-      style={[style, animatedStyle]}
+      style={[styles.tabItem, containerAnimatedStyle]}
     >
-      {children}
-    </AnimatedTabButton>
+      <View style={styles.iconContainer}>
+        <Animated.View
+          style={[
+            styles.activeIndicator,
+            { backgroundColor: palette.secondaryContainer },
+            pillAnimatedStyle,
+          ]}
+        />
+        <AppIcon name={tabInfo.icon} size={24} color={iconColor} />
+      </View>
+      <Text
+        variant="labelMedium"
+        style={[
+          styles.tabLabel,
+          {
+            color: labelColor,
+            fontWeight: focused ? '700' : '500',
+          },
+        ]}
+        maxFontSizeMultiplier={1.5}
+      >
+        {tabInfo.label}
+      </Text>
+    </AnimatedPressable>
   );
-}
-
-function tabIcon(tab: keyof RootTabParamList, focused: boolean, color: string) {
-  const t = TABS[tab];
-  return <TabIcon icon={t.icon} focused={focused} color={color} />;
 }
 
 function HistoryNavigator() {
@@ -127,8 +154,9 @@ function HistoryNavigator() {
     <HistoryStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: palette.background },
-        headerTintColor: palette.text,
+        headerTintColor: palette.onSurface,
         headerShadowVisible: false,
+        headerTitleStyle: { fontWeight: '700' },
         contentStyle: { backgroundColor: palette.background },
       }}
     >
@@ -144,13 +172,18 @@ function PlanNavigator() {
     <PlanStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: palette.background },
-        headerTintColor: palette.text,
+        headerTintColor: palette.onSurface,
         headerShadowVisible: false,
+        headerTitleStyle: { fontWeight: '700' },
         contentStyle: { backgroundColor: palette.background },
       }}
     >
       <PlanStack.Screen name="PlanList" component={PlanScreen} options={{ headerShown: false }} />
-      <PlanStack.Screen name="MapPlanner" component={MapPlannerScreen} options={{ title: 'Plan a route', headerBackButtonDisplayMode: 'minimal' }} />
+      <PlanStack.Screen
+        name="MapPlanner"
+        component={MapPlannerScreen}
+        options={{ title: 'Plan a route', headerBackButtonDisplayMode: 'minimal' }}
+      />
       <PlanStack.Screen name="RouteDetail" component={RouteDetailScreen} options={{ title: 'Route details' }} />
     </PlanStack.Navigator>
   );
@@ -166,53 +199,115 @@ export function RootNavigator() {
         colors: {
           primary: palette.primary,
           background: palette.background,
-          card: palette.surface,
-          text: palette.text,
-          border: palette.border,
-          notification: palette.danger,
+          card: palette.surfaceContainer,
+          text: palette.onSurface,
+          border: palette.outlineVariant,
+          notification: palette.error,
         },
       }}
     >
       <Tab.Navigator
         screenOptions={{
+          lazy: false,
           headerShown: false,
-          tabBarStyle: { backgroundColor: palette.surface, borderTopColor: palette.border },
-          tabBarActiveTintColor: palette.primary,
-          tabBarInactiveTintColor: palette.textMuted,
-          tabBarLabelStyle: { fontSize: typeScale.labelSmall.fontSize, fontWeight: '600', letterSpacing: 0.3 },
-          tabBarButton: (props) => <TabBarButton {...props} />,
-          // MD3 nav-tab motion: standard easing, short4 (200ms). Disabled with reduce-motion.
-          animation: settings.reduceMotion ? 'none' : 'shift',
-          transitionSpec: {
-            animation: 'timing',
-            config: {
-              duration: Duration.short4,
-              easing: AnimatedEasing.bezier(0.2, 0, 0, 1),
-            },
+          tabBarStyle: {
+            backgroundColor: palette.surfaceContainer,
+            borderTopColor: palette.outlineVariant,
+            borderTopWidth: 1,
+            height: 80,
+            paddingTop: 8,
+            paddingBottom: 12,
           },
+          // MD3 nav-tab cross-fade transition. Disabled with reduce-motion.
+          ...(settings.reduceMotion ? {} : TransitionPresets.FadeTransition),
         }}
       >
         <Tab.Screen
           name="Run"
           component={RunScreen}
-          options={{ tabBarIcon: ({ focused, color }) => tabIcon('Run', focused, color), tabBarAccessibilityLabel: 'Run' }}
+          options={{
+            tabBarButton: (props) => (
+              <MD3TabBarItem
+                tabKey="Run"
+                focused={props.accessibilityState?.selected ?? false}
+                onPress={props.onPress}
+                onLongPress={props.onLongPress}
+                accessibilityLabel="Run"
+              />
+            ),
+          }}
         />
         <Tab.Screen
           name="History"
           component={HistoryNavigator}
-          options={{ tabBarIcon: ({ focused, color }) => tabIcon('History', focused, color), tabBarAccessibilityLabel: 'Run history' }}
+          options={{
+            tabBarButton: (props) => (
+              <MD3TabBarItem
+                tabKey="History"
+                focused={props.accessibilityState?.selected ?? false}
+                onPress={props.onPress}
+                onLongPress={props.onLongPress}
+                accessibilityLabel="Run history"
+              />
+            ),
+          }}
         />
         <Tab.Screen
           name="Plan"
           component={PlanNavigator}
-          options={{ tabBarIcon: ({ focused, color }) => tabIcon('Plan', focused, color), tabBarAccessibilityLabel: 'Route planner' }}
+          options={{
+            tabBarButton: (props) => (
+              <MD3TabBarItem
+                tabKey="Plan"
+                focused={props.accessibilityState?.selected ?? false}
+                onPress={props.onPress}
+                onLongPress={props.onLongPress}
+                accessibilityLabel="Route planner"
+              />
+            ),
+          }}
         />
         <Tab.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{ tabBarIcon: ({ focused, color }) => tabIcon('Settings', focused, color), tabBarAccessibilityLabel: 'Settings' }}
+          options={{
+            tabBarButton: (props) => (
+              <MD3TabBarItem
+                tabKey="Settings"
+                focused={props.accessibilityState?.selected ?? false}
+                onPress={props.onPress}
+                onLongPress={props.onLongPress}
+                accessibilityLabel="Settings"
+              />
+            ),
+          }}
         />
       </Tab.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    gap: 4,
+  },
+  iconContainer: {
+    width: 64,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    width: 64,
+    height: 32,
+    borderRadius: radii.large,
+  },
+  tabLabel: {
+    letterSpacing: 0.2,
+  },
+});

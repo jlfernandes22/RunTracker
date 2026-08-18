@@ -4,8 +4,7 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';
-import { overlayTokens } from '../theme/tokens';
+import { spacing, radii, overlayTokens, elevation } from '../theme/tokens';
 
 import { session, Snapshot } from '../services/RunSession';
 import { RunState } from '../types';
@@ -22,6 +21,7 @@ import { createAnimatedComponent } from 'react-native-reanimated';
 import { useDialog } from '../components/Dialog';
 import { useM3PressScale } from '../hooks/useM3PressScale';
 import { LoadingIndicator } from '../components/LoadingIndicator';
+import { Card } from '../components/Card';
 
 const IDLE_SNAP: Snapshot = {
   state: 'idle',
@@ -58,8 +58,10 @@ export function RunScreen() {
   useEffect(() => {
     const routeId = route.params?.routeId;
     if (routeId) {
-      db.getAllRoutes().then((routes) => {
-        setPlannedRoute(routes.find((r) => r.id === routeId) ?? null);
+      db.getRoute(routeId).then((found) => {
+        setPlannedRoute(found ?? null);
+      }).catch(() => {
+        setPlannedRoute(null);
       });
     }
   }, [route.params?.routeId]);
@@ -87,9 +89,6 @@ export function RunScreen() {
       snapRef.current = s;
     });
     if (isFocused && session.getState() === 'idle') {
-      // Only offer recovery when no run is in progress: the checkpoint is
-      // saved every 15s during a recording, so tab focus changes must not
-      // pop the "unfinished run" dialog over a live run.
       session.recoverCheckpoint().then((cp) => {
         if (cp) setCheckpointVisible(true);
       });
@@ -194,8 +193,8 @@ export function RunScreen() {
       <View style={[styles.topOverlay, { paddingTop: insets.top + spacing.lg }]} pointerEvents="box-none">
         {plannedRoute ? (
           <View style={[styles.routeBanner, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-            <AppIcon name="route" size={15} color={palette.primary} />
-            <Text variant="labelMedium" style={{ color: palette.text, flex: 1 }} numberOfLines={1} maxFontSizeMultiplier={2}>
+            <AppIcon name="route" size={16} color={palette.primary} />
+            <Text variant="labelMedium" style={{ color: palette.onSurface, flex: 1, fontWeight: '600' }} numberOfLines={1} maxFontSizeMultiplier={2}>
               {plannedRoute.name}
             </Text>
             <AnimatedPressable
@@ -207,24 +206,25 @@ export function RunScreen() {
               hitSlop={8}
               style={animatedStyle}
             >
-              <AppIcon name="close" size={16} color={palette.textMuted} />
+              <AppIcon name="close" size={18} color={palette.onSurfaceVariant} />
             </AnimatedPressable>
           </View>
         ) : null}
+
         <View style={styles.metricRow}>
           <View style={[styles.glassCard, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+            <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 0.5 }} maxFontSizeMultiplier={2}>
               Distance
             </Text>
-            <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
+            <Text variant="displayMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
               {formatDistance(snap.distanceM)}
             </Text>
           </View>
           <View style={[styles.glassCard, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+            <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 0.5 }} maxFontSizeMultiplier={2}>
               Time
             </Text>
-            <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
+            <Text variant="displayMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2} adjustsFontSizeToFit numberOfLines={1}>
               {formatDuration(snap.elapsedS)}
             </Text>
           </View>
@@ -233,18 +233,18 @@ export function RunScreen() {
         {active ? (
           <View style={styles.metricRow}>
             <View style={[styles.glassCardSmall, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-              <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                Pace
+              <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 0.5 }} maxFontSizeMultiplier={2}>
+                Current Pace
               </Text>
-              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+              <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
                 {formatPace(snap.currentPaceS)}
               </Text>
             </View>
             <View style={[styles.glassCardSmall, { backgroundColor: palette.glass, borderColor: palette.glassBorder }]}>
-              <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+              <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 0.5 }} maxFontSizeMultiplier={2}>
                 Last km
               </Text>
-              <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+              <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
                 {snap.lastKmDurationS != null ? formatPace(snap.lastKmDurationS) : '--:--'}
               </Text>
             </View>
@@ -259,13 +259,13 @@ export function RunScreen() {
               <>
                 <View style={[styles.glassPill, { backgroundColor: palette.glass, borderColor: gpsColor }]}>
                   <AppIcon name="gps-fixed" size={14} color={gpsColor} />
-                  <Text variant="labelMedium" style={{ color: gpsColor }} maxFontSizeMultiplier={2}>
+                  <Text variant="labelMedium" style={{ color: gpsColor, fontWeight: '600' }} maxFontSizeMultiplier={2}>
                     {gpsAccuracy != null ? `GPS ±${Math.round(gpsAccuracy)} m` : 'Searching…'}
                   </Text>
                 </View>
                 {snap.autoPaused ? (
                   <View style={[styles.glassPill, { backgroundColor: palette.glass, borderColor: palette.warning }]}>
-                    <Text variant="labelMedium" style={{ color: palette.warning }} maxFontSizeMultiplier={2}>
+                    <Text variant="labelMedium" style={{ color: palette.warning, fontWeight: '600' }} maxFontSizeMultiplier={2}>
                       Auto-paused
                     </Text>
                   </View>
@@ -273,21 +273,42 @@ export function RunScreen() {
               </>
             ) : null}
           </View>
-          <LocateButton
-            mapHandle={mapHandle}
-            onError={(msg) => dialog.alert({ title: 'Location', message: msg, buttons: [{ label: 'OK' }] })}
-          />
+          <View style={styles.statusActionGroup}>
+            {active ? (
+              <AnimatedPressable
+                accessibilityRole="button"
+                accessibilityLabel="Speak run stats"
+                accessibilityHint="Speaks your current distance, time, and pace"
+                onPress={onSpeak}
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                style={[
+                  styles.glassIconButton,
+                  { backgroundColor: palette.glass, borderColor: palette.glassBorder },
+                  animatedStyle,
+                ]}
+              >
+                <AppIcon name="volume-up" size={22} color={palette.text} />
+              </AnimatedPressable>
+            ) : null}
+            <LocateButton
+              mapHandle={mapHandle}
+              onError={(msg) => dialog.alert({ title: 'Location', message: msg, buttons: [{ label: 'OK' }] })}
+            />
+          </View>
         </View>
+
         {snap.state === 'idle' ? (
           <>
             <BigButton
               label="Start Run"
+              icon="play-arrow"
               onPress={onStart}
               size="large"
               accessibilityHint="Begins tracking your run with GPS"
               style={styles.bottomButton}
             />
-            <Text variant="labelMedium" style={[styles.hint, { color: palette.textMuted }]}>
+            <Text variant="labelMedium" style={[styles.hint, { color: palette.onSurfaceVariant }]}>
               Recorded entirely on your device
             </Text>
           </>
@@ -296,28 +317,27 @@ export function RunScreen() {
         {recording && acquiring ? (
           <>
             <View style={[styles.acquireCard, { backgroundColor: palette.surfaceContainerHigh, borderColor: palette.outlineVariant }]}>
-              <LoadingIndicator size={20} />
-              <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+              <LoadingIndicator size={24} />
+              <Text variant="labelLarge" style={{ color: palette.onSurfaceVariant, fontWeight: '600' }} maxFontSizeMultiplier={2}>
                 Searching for GPS…
               </Text>
             </View>
             <BigButton label="Finish run" icon="stop" onPress={onStop} variant="danger" size="large" disabled={saving} style={styles.bottomButton} />
           </>
         ) : null}
+
         {recording && !acquiring ? (
-          <>
-            <BigButton label="Pause" icon="pause" onPress={() => session.pause()} variant="secondary" size="large" style={styles.bottomButton} />
-            <BigButton label="Speak stats" icon="volume-up" onPress={onSpeak} variant="ghost" style={styles.bottomButton} />
-            <BigButton label="Finish run" icon="stop" onPress={onStop} variant="danger" size="large" disabled={saving} style={styles.bottomButton} />
-          </>
+          <View style={styles.controlButtonGroup}>
+            <BigButton label="Pause" icon="pause" onPress={() => session.pause()} variant="secondary" size="large" style={{ flex: 1 }} />
+            <BigButton label="Finish" icon="stop" onPress={onStop} variant="danger" size="large" disabled={saving} style={{ flex: 1 }} />
+          </View>
         ) : null}
 
         {paused ? (
-          <>
-            <BigButton label="Resume" icon="play-arrow" onPress={() => session.resume()} size="large" style={styles.bottomButton} />
-            <BigButton label="Speak stats" icon="volume-up" onPress={onSpeak} variant="ghost" style={styles.bottomButton} />
-            <BigButton label="Finish run" icon="stop" onPress={onStop} variant="danger" size="large" disabled={saving} style={styles.bottomButton} />
-          </>
+          <View style={styles.controlButtonGroup}>
+            <BigButton label="Resume" icon="play-arrow" onPress={() => session.resume()} size="large" style={{ flex: 1 }} />
+            <BigButton label="Finish" icon="stop" onPress={onStop} variant="danger" size="large" disabled={saving} style={{ flex: 1 }} />
+          </View>
         ) : null}
       </View>
 
@@ -328,11 +348,11 @@ export function RunScreen() {
         onRequestClose={discardCheckpoint}
       >
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modal, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+          <Card variant="elevated" style={styles.modal} contentStyle={styles.modalContent}>
+            <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Unfinished run found
             </Text>
-            <Text variant="bodyLarge" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
               You had a run in progress. Resume it or discard the recording.
             </Text>
             <BigButton label="Resume run" onPress={resumeCheckpoint} style={{ width: '100%' }} />
@@ -342,7 +362,7 @@ export function RunScreen() {
               variant="danger"
               style={{ width: '100%' }}
             />
-          </View>
+          </Card>
         </View>
       </Modal>
     </View>
@@ -358,12 +378,6 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
   },
   pillRow: {
     flex: 1,
@@ -386,7 +400,7 @@ const styles = StyleSheet.create({
   },
   glassCard: {
     flex: 1,
-    borderRadius: radii.lg,
+    borderRadius: radii.large,
     borderWidth: 1,
     padding: spacing.lg,
     alignItems: 'center',
@@ -396,7 +410,7 @@ const styles = StyleSheet.create({
   },
   glassCardSmall: {
     flex: 1,
-    borderRadius: radii.lg,
+    borderRadius: radii.large,
     borderWidth: 1,
     padding: spacing.md,
     alignItems: 'center',
@@ -410,6 +424,11 @@ const styles = StyleSheet.create({
     right: spacing.lg,
     bottom: spacing.lg,
     gap: spacing.md,
+  },
+  controlButtonGroup: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
   },
   routeBanner: {
     flexDirection: 'row',
@@ -427,6 +446,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
+  },
+  statusActionGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  glassIconButton: {
+    width: 52,
+    height: 52,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: spacing.sm,
   },
   bottomButton: {
     width: '100%',
@@ -450,8 +483,9 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   modal: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    borderRadius: radii.extraLarge,
+  },
+  modalContent: {
     padding: spacing.xl,
     gap: spacing.md,
   },

@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';
+import { spacing, radii, elevation } from '../theme/tokens';
 import { db } from '../db/database';
 import { GeoPoint, SavedRoute } from '../types';
 import { formatDistance, haversine, uuid } from '../lib/geo';
@@ -86,16 +86,34 @@ export function MapPlannerScreen() {
         </View>
       </View>
 
-      <View style={[styles.panel, { backgroundColor: palette.glass, borderColor: palette.glassBorder, marginBottom: insets.bottom + spacing.lg }]}>
+      <View
+        style={[
+          styles.bottomSheet,
+          {
+            backgroundColor: palette.surfaceContainerLow,
+            borderTopColor: palette.outlineVariant,
+            paddingBottom: insets.bottom + spacing.md,
+            shadowColor: elevation.level2.shadowColor,
+            shadowOpacity: elevation.level2.shadowOpacity,
+            shadowRadius: elevation.level2.shadowRadius,
+            shadowOffset: elevation.level2.shadowOffset,
+            elevation: elevation.level2.elevationAndroid,
+          },
+        ]}
+      >
+        <View style={styles.dragHandleWrap}>
+          <View style={[styles.dragHandle, { backgroundColor: palette.outlineVariant }]} />
+        </View>
+
         <View style={styles.statsRow}>
           <View style={styles.statsText}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+            <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 0.5 }} maxFontSizeMultiplier={2}>
               Tap the map to add waypoints
             </Text>
-            <Text variant="displayMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+            <Text variant="displayMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
               {formatDistance(distance())}
             </Text>
-            <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+            <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
               {waypoints.length} point{waypoints.length === 1 ? '' : 's'} · straight-line only
             </Text>
           </View>
@@ -121,10 +139,12 @@ export function MapPlannerScreen() {
           </View>
           <View style={styles.buttonWrap}>
             <BigButton
-              label="Save Route"
+              label="Save"
+              compact
+              icon="check"
               onPress={save}
               disabled={waypoints.length < 2}
-              style={{ width: '100%' }}
+              style={{ minWidth: 90 }}
             />
           </View>
         </View>
@@ -135,12 +155,22 @@ export function MapPlannerScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  panel: {
-    marginHorizontal: spacing.lg,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.lg,
+  bottomSheet: {
+    borderTopLeftRadius: radii.extraLarge,
+    borderTopRightRadius: radii.extraLarge,
+    borderTopWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     gap: spacing.md,
+  },
+  dragHandleWrap: {
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  dragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
   },
   statsRow: {
     flexDirection: 'row',
@@ -151,6 +181,7 @@ const styles = StyleSheet.create({
     flex: 3,
     minWidth: 0,
     flexShrink: 1,
+    gap: 2,
   },
   pointButtons: {
     flexDirection: 'row',

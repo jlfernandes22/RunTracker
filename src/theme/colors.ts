@@ -5,6 +5,7 @@
 import { shape, spacing } from './tokens';
 
 export const radii = {
+  ...shape,
   sm: shape.small,
   md: shape.medium,
   lg: shape.large,

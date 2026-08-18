@@ -1,16 +1,18 @@
 import { GeoPoint } from '../types';
 
 const EARTH_RADIUS_M = 6371008.8;
+const DEG_TO_RAD = Math.PI / 180;
+const TWO_EARTH_RADIUS = 2 * EARTH_RADIUS_M;
 
 export function haversine(a: GeoPoint, b: GeoPoint): number {
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
+  const lat1 = a.lat * DEG_TO_RAD;
+  const lat2 = b.lat * DEG_TO_RAD;
+  const dLat = (b.lat - a.lat) * DEG_TO_RAD;
+  const dLng = (b.lng - a.lng) * DEG_TO_RAD;
+  const sinDLat2 = Math.sin(dLat * 0.5);
+  const sinDLng2 = Math.sin(dLng * 0.5);
+  const h = sinDLat2 * sinDLat2 + Math.cos(lat1) * Math.cos(lat2) * sinDLng2 * sinDLng2;
+  return TWO_EARTH_RADIUS * Math.asin(Math.sqrt(h));
 }
 
 export function polylineLength(points: GeoPoint[]): number {
@@ -48,15 +50,19 @@ export function formatPace(secondsPerKm: number | null): string {
 }
 
 export function speedFromRecentPoints(points: GeoPoint[], lookbackMs: number): number | null {
-  if (points.length < 2) return null;
-  const now = points[points.length - 1].ts;
-  let startIdx = points.length - 1;
-  for (let i = points.length - 1; i >= 0; i--) {
+  const len = points.length;
+  if (len < 2) return null;
+  const now = points[len - 1].ts;
+  let startIdx = len - 1;
+  for (let i = len - 1; i >= 0; i--) {
     if (now - points[i].ts > lookbackMs) break;
     startIdx = i;
   }
-  if (startIdx >= points.length - 1) return null;
-  const dist = polylineLength(points.slice(startIdx));
+  if (startIdx >= len - 1) return null;
+  let dist = 0;
+  for (let i = startIdx + 1; i < len; i++) {
+    dist += haversine(points[i - 1], points[i]);
+  }
   const dt = (now - points[startIdx].ts) / 1000;
   if (dt <= 0) return null;
   return dist / dt;
@@ -84,8 +90,8 @@ export function uuid(): string {
 export function currentStreakDays(runStartTimes: number[]): number {
   if (runStartTimes.length === 0) return 0;
   const days = new Set<number>();
-  for (const ts of runStartTimes) {
-    const d = new Date(ts);
+  for (let i = 0; i < runStartTimes.length; i++) {
+    const d = new Date(runStartTimes[i]);
     d.setHours(0, 0, 0, 0);
     days.add(Math.floor(d.getTime() / 86400000));
   }
@@ -103,10 +109,15 @@ export function currentStreakDays(runStartTimes: number[]): number {
 }
 
 export function weekDistanceM(runs: { start_time: string; distance_m: number }[]): number {
-  const monday = startOfWeek(new Date());
-  return runs
-    .filter((r) => new Date(r.start_time).getTime() >= monday.getTime())
-    .reduce((sum, r) => sum + r.distance_m, 0);
+  const mondayTs = startOfWeek(new Date()).getTime();
+  let total = 0;
+  for (let i = 0; i < runs.length; i++) {
+    const r = runs[i];
+    if (Date.parse(r.start_time) >= mondayTs) {
+      total += r.distance_m;
+    }
+  }
+  return total;
 }
 
 /**

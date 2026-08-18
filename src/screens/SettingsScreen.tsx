@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text } from 'react-native-paper';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useTheme } from '../theme/ThemeContext';
+import { useTheme, ThemeMode } from '../theme/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { spacing } from '../theme/colors';
-import { SectionLabel, SettingRow, ToggleRow } from '../components/Controls';
+import { spacing, radii } from '../theme/tokens';
+import { SectionLabel, SettingRow, SettingsGroup, ToggleRow } from '../components/Controls';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { BigButton } from '../components/BigButton';
+import { Card } from '../components/Card';
+import { SegmentedButtons } from '../components/SegmentedButtons';
 import { ReminderPicker } from '../components/ReminderPicker';
 import { useDialog } from '../components/Dialog';
 import { db } from '../db/database';
@@ -146,164 +149,164 @@ export function SettingsScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: palette.background }]}>
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text variant="headlineSmall" style={[styles.screenTitle, { color: palette.text }]} maxFontSizeMultiplier={2} accessibilityRole="header">
-        Settings
-      </Text>
+      <ScreenHeader title="Settings" />
 
-      <SectionLabel>Run tracking</SectionLabel>
-      <View style={styles.group}>
-        <ToggleRow
-          label="Auto-pause when standing still"
-          hint="Pauses recording when your speed stays very low, resumes when you speed up"
-          value={autoPause}
-          onValueChange={setAutoPausePref}
-        />
-        <ToggleRow
-          label="Spoken km markers"
-          hint="Announces each kilometer during a run"
-          value={speech}
-          onValueChange={setSpeechPref}
-        />
-        <ToggleRow
-          label="Sound cues"
-          hint="Beeps for start, pause, and every kilometer"
-          value={sound}
-          onValueChange={setSoundPref}
-        />
-        <ToggleRow
-          label="Vibration"
-          hint="Haptic feedback for run events"
-          value={vibration}
-          onValueChange={setVibrationPref}
-        />
-      </View>
-
-      <SectionLabel>Run reminders</SectionLabel>
-      <View style={styles.group}>
-        <ToggleRow
-          label="Run reminders"
-          hint="Sends local notifications on your chosen days and times"
-          value={prefs.enabled}
-          onValueChange={onEnableNotifications}
-        />
-        {prefs.enabled ? (
-          <>
-            <ReminderPicker
-              days={prefs.days}
-              onDaysChange={(days) => {
-                const next = { ...prefs, days };
-                setPrefs(next);
-                savePrefs(next);
-              }}
-              hour={prefs.hour}
-              minute={prefs.minute}
-              onTimeChange={(hour, minute) => {
-                const next = { ...prefs, hour, minute };
-                setPrefs(next);
-                savePrefs(next);
-              }}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <SectionLabel>Appearance</SectionLabel>
+        <SettingsGroup>
+          <View style={styles.themeModeWrap}>
+            <Text variant="bodyLarge" style={{ color: palette.onSurface, fontWeight: '600', marginBottom: spacing.xs }}>
+              Theme
+            </Text>
+            <SegmentedButtons<ThemeMode>
+              value={settings.themeMode}
+              onValueChange={setThemeMode}
+              buttons={[
+                { value: 'system', label: 'System' },
+                { value: 'light', label: 'Light' },
+                { value: 'dark', label: 'Dark' },
+              ]}
             />
-            <ToggleRow
-              label="Rest-day reminders"
-              hint="Nudges on days you do not run"
-              value={prefs.restReminders}
-              onValueChange={(v) => {
-                const next = { ...prefs, restReminders: v };
-                setPrefs(next);
-                savePrefs(next);
-              }}
+          </View>
+          <ToggleRow
+            label="High contrast theme"
+            hint="Switches to a high-contrast palette with strong color contrast"
+            value={settings.highContrast}
+            onValueChange={setHighContrast}
+          />
+          <ToggleRow
+            label="Reduce motion"
+            hint="Disables spring animations and transitions"
+            value={settings.reduceMotion}
+            onValueChange={setReduceMotion}
+          />
+          <SettingRow
+            label="Larger text"
+            value={settings.fontScale === 1 ? 'Default' : `${Math.round(settings.fontScale * 100)}%`}
+            onPress={() =>
+              dialog.alert({
+                title: 'Larger text',
+                message: 'Choose a text size multiplier.',
+                buttons: [
+                  { label: 'Default (100%)', variant: settings.fontScale === 1 ? 'primary' : 'secondary', onPress: () => setFontScale(1) },
+                  { label: '110%', variant: settings.fontScale === 1.1 ? 'primary' : 'secondary', onPress: () => setFontScale(1.1) },
+                  { label: '125%', variant: settings.fontScale === 1.25 ? 'primary' : 'secondary', onPress: () => setFontScale(1.25) },
+                  { label: '150%', variant: settings.fontScale === 1.5 ? 'primary' : 'secondary', onPress: () => setFontScale(1.5) },
+                ],
+              })
+            }
+            hint="Scales app typography beyond the system setting"
+          />
+        </SettingsGroup>
+
+        <SectionLabel>Run tracking</SectionLabel>
+        <SettingsGroup>
+          <ToggleRow
+            label="Auto-pause when standing still"
+            hint="Pauses recording when speed drops, resumes when you move"
+            value={autoPause}
+            onValueChange={setAutoPausePref}
+          />
+          <ToggleRow
+            label="Spoken km markers"
+            hint="Announces each kilometer during a run"
+            value={speech}
+            onValueChange={setSpeechPref}
+          />
+          <ToggleRow
+            label="Sound cues"
+            hint="Audio beeps for start, pause, and each kilometer"
+            value={sound}
+            onValueChange={setSoundPref}
+          />
+          <ToggleRow
+            label="Vibration"
+            hint="Haptic feedback for run events"
+            value={vibration}
+            onValueChange={setVibrationPref}
+          />
+        </SettingsGroup>
+
+        <SectionLabel>Run reminders</SectionLabel>
+        <SettingsGroup>
+          <ToggleRow
+            label="Run reminders"
+            hint="Sends local notifications on your chosen days and times"
+            value={prefs.enabled}
+            onValueChange={onEnableNotifications}
+          />
+          {prefs.enabled ? (
+            <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+              <ReminderPicker
+                days={prefs.days}
+                onDaysChange={(days) => {
+                  const next = { ...prefs, days };
+                  setPrefs(next);
+                  savePrefs(next);
+                }}
+                hour={prefs.hour}
+                minute={prefs.minute}
+                onTimeChange={(hour, minute) => {
+                  const next = { ...prefs, hour, minute };
+                  setPrefs(next);
+                  savePrefs(next);
+                }}
+              />
+              <ToggleRow
+                label="Rest-day reminders"
+                hint="Encouraging nudges on days you do not run"
+                value={prefs.restReminders}
+                onValueChange={(v) => {
+                  const next = { ...prefs, restReminders: v };
+                  setPrefs(next);
+                  savePrefs(next);
+                }}
+                style={{ paddingHorizontal: 0 }}
+              />
+            </View>
+          ) : null}
+        </SettingsGroup>
+
+        <SectionLabel>Backup & restore</SectionLabel>
+        <SettingsGroup>
+          <View style={styles.backupActions}>
+            <BigButton
+              label="Export backup (JSON + GPX)"
+              icon="file-download"
+              onPress={onExport}
+              variant="secondary"
+              disabled={busy}
+              accessibilityHint="Creates a zip backup of all runs, routes, and settings"
+              style={{ width: '100%' }}
             />
-          </>
-        ) : null}
-      </View>
+            <BigButton
+              label="Import backup"
+              onPress={onImport}
+              variant="secondary"
+              disabled={busy}
+              accessibilityHint="Restores from a backup zip, with duplicate handling options"
+              style={{ width: '100%' }}
+            />
+            <Text variant="bodySmall" style={{ color: palette.onSurfaceVariant, textAlign: 'center' }} maxFontSizeMultiplier={2}>
+              Backups stay on this device. They are not uploaded anywhere.
+            </Text>
+          </View>
+        </SettingsGroup>
 
-      <SectionLabel>Accessibility</SectionLabel>
-      <View style={styles.group}>
-        <SettingRow
-          label="App theme"
-          value={settings.themeMode === 'system' ? 'System' : settings.themeMode === 'light' ? 'Light' : 'Dark'}
-          onPress={() =>
-            dialog.alert({
-              title: 'App theme',
-              message: 'Choose how the app looks.',
-              buttons: [
-                { label: 'System', variant: settings.themeMode === 'system' ? 'primary' : 'secondary', onPress: () => setThemeMode('system') },
-                { label: 'Light', variant: settings.themeMode === 'light' ? 'primary' : 'secondary', onPress: () => setThemeMode('light') },
-                { label: 'Dark', variant: settings.themeMode === 'dark' ? 'primary' : 'secondary', onPress: () => setThemeMode('dark') },
-              ],
-            })
-          }
-          hint="Follows your device by default"
-        />
-        <ToggleRow
-          label="High contrast theme"
-          hint="Switches to a high-contrast palette with strong color contrast"
-          value={settings.highContrast}
-          onValueChange={setHighContrast}
-        />
-        <ToggleRow
-          label="Reduce motion"
-          hint="Removes animations and transitions"
-          value={settings.reduceMotion}
-          onValueChange={setReduceMotion}
-        />
-        <SettingRow
-          label="Larger text"
-          value={settings.fontScale === 1 ? 'Default' : `${Math.round(settings.fontScale * 100)}%`}
-          onPress={() =>
-            dialog.alert({
-              title: 'Larger text',
-              message: 'Choose a text size multiplier.',
-              buttons: [
-                { label: 'Default', variant: settings.fontScale === 1 ? 'primary' : 'secondary', onPress: () => setFontScale(1) },
-                { label: '110%', variant: settings.fontScale === 1.1 ? 'primary' : 'secondary', onPress: () => setFontScale(1.1) },
-                { label: '125%', variant: settings.fontScale === 1.25 ? 'primary' : 'secondary', onPress: () => setFontScale(1.25) },
-                { label: '150%', variant: settings.fontScale === 1.5 ? 'primary' : 'secondary', onPress: () => setFontScale(1.5) },
-              ],
-            })
-          }
-          hint="Scales all app text beyond the system setting"
-        />
-      </View>
-
-      <SectionLabel>Backup & restore</SectionLabel>
-      <View style={styles.group}>
-        <BigButton
-          label="Export backup (JSON + GPX)"
-          onPress={onExport}
-          variant="secondary"
-          disabled={busy}
-          accessibilityHint="Creates a zip backup of all runs, routes and settings"
-          style={{ width: '100%' }}
-        />
-        <BigButton
-          label="Import backup"
-          onPress={onImport}
-          variant="secondary"
-          disabled={busy}
-          accessibilityHint="Restores from a backup zip, with duplicate handling options"
-          style={{ width: '100%' }}
-        />
-        <Text style={[styles.note, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
-          Backups stay on this device. They are not uploaded anywhere.
-        </Text>
-      </View>
-
-      <SectionLabel>About</SectionLabel>
-      <View style={styles.group}>
-        <Text style={[styles.about, { color: palette.text }]} maxFontSizeMultiplier={2}>
-          RunTracker v0.1 — offline-first running companion.
-        </Text>
-        <Text style={[styles.about, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
-          100% offline. No account. No tracking. All data stays on your device.
-        </Text>
-      </View>
-    </ScrollView>
+        <SectionLabel>About</SectionLabel>
+        <Card variant="filled" contentStyle={styles.aboutCard}>
+          <Text variant="titleMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
+            RunTracker v0.1 — Material Design 3
+          </Text>
+          <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+            100% offline running companion. No account, no cloud, no tracking. All data is stored locally.
+          </Text>
+        </Card>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -311,16 +314,20 @@ export function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
-    gap: spacing.md,
-  },
-  screenTitle: {},
-  group: {
     gap: spacing.sm,
   },
-  note: {},
-  about: {
-    lineHeight: 20,
+  themeModeWrap: {
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  backupActions: {
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  aboutCard: {
+    padding: spacing.lg,
+    gap: spacing.xs,
   },
 });

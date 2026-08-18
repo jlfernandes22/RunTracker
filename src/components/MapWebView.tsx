@@ -29,6 +29,8 @@ export interface MapWebViewHandle {
   locate: () => Promise<{ ok: boolean; message?: string }>;
 }
 
+const WEBVIEW_SOURCE = { html: MAP_HTML, baseUrl: 'https://map.local' };
+
 export const MapWebView = forwardRef<MapWebViewHandle, Props>(function MapWebView(
   {
     waypoints,
@@ -173,7 +175,7 @@ export const MapWebView = forwardRef<MapWebViewHandle, Props>(function MapWebVie
     <View style={[styles.container, { height }]} accessible={false}>
       <WebView
         ref={webRef}
-        source={{ html: MAP_HTML, baseUrl: 'https://map.local' }}
+        source={WEBVIEW_SOURCE}
         onMessage={onMessage}
         style={{ flex: 1, backgroundColor: theme === 'dark' ? overlayTokens.mapCanvasDark : overlayTokens.mapCanvasLight }}
         originWhitelist={['*']}

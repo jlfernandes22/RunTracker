@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Chip, Text } from 'react-native-paper';
 import { FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -6,7 +6,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';
+import { spacing, radii } from '../theme/tokens';
 import { db } from '../db/database';
 import { Run } from '../types';
 import {
@@ -24,9 +24,67 @@ import { AppIcon } from '../components/AppIcon';
 import { ProgressRing } from '../components/ProgressRing';
 import { useDialog } from '../components/Dialog';
 import { useSnackbar } from '../components/Snackbar';
-import { AnimatedPressable } from '../components/AnimatedPressable';
+import { Card } from '../components/Card';
 import { ListSkeleton } from '../components/Skeleton';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
+
+interface RunCardItemProps {
+  item: Run;
+  improved: boolean;
+  isThisWeek: boolean;
+  pace: number | null;
+  palette: any;
+  onPress: () => void;
+  onLongPress: () => void;
+}
+
+const RunCardItem = React.memo(function RunCardItem({
+  item,
+  improved,
+  isThisWeek,
+  pace,
+  palette,
+  onPress,
+  onLongPress,
+}: RunCardItemProps) {
+  return (
+    <Animated.View entering={FadeIn.duration(300)}>
+      <Card
+        variant="elevated"
+        onPress={onPress}
+        onLongPress={onLongPress}
+        accessibilityLabel={`Run on ${formatDate(item.start_time)}, ${formatDistance(item.distance_m)}, ${formatDuration(item.duration_s)}`}
+        contentStyle={styles.cardContent}
+      >
+        <View style={styles.cardMain}>
+          <Text variant="headlineMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+            {formatDistance(item.distance_m)}
+          </Text>
+          <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+            {formatDate(item.start_time)} · {formatDuration(item.duration_s)}
+          </Text>
+          <Text variant="labelMedium" style={{ color: palette.primary, fontWeight: '600' }} maxFontSizeMultiplier={2}>
+            {formatPace(pace)}
+          </Text>
+        </View>
+        <View style={styles.cardSide}>
+          {improved ? (
+            <View style={[styles.badge, { backgroundColor: palette.primaryContainer }]}>
+              <AppIcon name="trending-up" size={13} color={palette.onPrimaryContainer} />
+              <Text variant="labelSmall" style={{ color: palette.onPrimaryContainer, fontWeight: '700' }} maxFontSizeMultiplier={2}>
+                Pace improved
+              </Text>
+            </View>
+          ) : null}
+          {isThisWeek ? (
+            <View style={[styles.weekDot, { backgroundColor: palette.primary }]} accessibilityLabel="This week" />
+          ) : null}
+          <AppIcon name="navigate-next" size={24} color={palette.onSurfaceVariant} />
+        </View>
+      </Card>
+    </Animated.View>
+  );
+});
 
 export function HistoryScreen() {
   const { palette } = useTheme();
@@ -44,9 +102,9 @@ export function HistoryScreen() {
       .then((all) => {
         setRuns(all);
         setWeekKm(weekDistanceM(all) / 1000);
-        setStreakDays(currentStreakDays(all.map((r) => new Date(r.start_time).getTime())));
+        setStreakDays(currentStreakDays(all.map((r) => Date.parse(r.start_time))));
         const monday = startOfWeek(new Date()).getTime();
-        setWeekCount(all.filter((r) => new Date(r.start_time).getTime() >= monday).length);
+        setWeekCount(all.filter((r) => Date.parse(r.start_time) >= monday).length);
       })
       .catch((e) => {
         console.warn('failed to load runs', e);
@@ -82,6 +140,68 @@ export function HistoryScreen() {
     [dialog, load, snackbar],
   );
 
+  const sorted = useMemo(() => {
+    if (!runs) return [];
+    return [...runs].sort((a, b) => Date.parse(b.start_time) - Date.parse(a.start_time));
+  }, [runs]);
+
+  const months = useMemo(() => {
+    return Array.from(
+      new Set(
+        sorted.map((r) => {
+          const d = new Date(r.start_time);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }),
+      ),
+    );
+  }, [sorted]);
+
+  const monthLabel = useCallback((m: string) => {
+    const [y, mo] = m.split('-');
+    return new Date(Number(y), Number(mo) - 1, 1).toLocaleDateString(undefined, {
+      month: 'short',
+      year: 'numeric',
+    });
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (month === 'all') return sorted;
+    return sorted.filter((r) => {
+      const d = new Date(r.start_time);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === month;
+    });
+  }, [sorted, month]);
+
+  const mondayTs = useMemo(() => startOfWeek(new Date()).getTime(), []);
+  const ringProgress = Math.min(1, weekKm / 30);
+  const streakProgress = Math.min(1, streakDays / 7);
+
+  const renderRunItem = useCallback(
+    ({ item, index }: { item: Run; index: number }) => {
+      const prev = sorted[index + 1];
+      const moving = item.duration_s - (item.paused_s ?? 0);
+      const prevMoving = prev ? prev.duration_s - (prev.paused_s ?? 0) : 0;
+      const pace = moving > 0 && item.distance_m > 0 ? moving / (item.distance_m / 1000) : null;
+      const prevPace =
+        prev && prevMoving > 0 && prev.distance_m > 0 ? prevMoving / (prev.distance_m / 1000) : null;
+      const improved = pace != null && prevPace != null && pace < prevPace - 2;
+      const isThisWeek = Date.parse(item.start_time) >= mondayTs;
+
+      return (
+        <RunCardItem
+          item={item}
+          improved={improved}
+          isThisWeek={isThisWeek}
+          pace={pace}
+          palette={palette}
+          onPress={() => navigation.navigate('RunDetail', { runId: item.id })}
+          onLongPress={() => confirmDelete(item)}
+        />
+      );
+    },
+    [sorted, mondayTs, palette, navigation, confirmDelete],
+  );
+
   if (runs === null) {
     return (
       <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: palette.background }]}>
@@ -93,38 +213,13 @@ export function HistoryScreen() {
     );
   }
 
-  const sorted = [...runs].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
-
-  const months = Array.from(
-    new Set(
-      sorted.map((r) => {
-        const d = new Date(r.start_time);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      }),
-    ),
-  );
-  const monthLabel = (m: string) => {
-    const [y, mo] = m.split('-');
-    return new Date(Number(y), Number(mo) - 1, 1).toLocaleDateString(undefined, {
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-  const filtered = month === 'all' ? sorted : sorted.filter((r) => {
-    const d = new Date(r.start_time);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === month;
-  });
-
-  const ringProgress = Math.min(1, weekKm / 30);
-  const streakProgress = Math.min(1, streakDays / 7);
-
   return (
     <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: palette.background }]}>
       <ScreenHeader title="History">
         {runs.length > 0 ? (
-          <View style={[styles.chip, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <AppIcon name="calendar-today" size={13} color={palette.textMuted} />
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+          <View style={[styles.chip, { backgroundColor: palette.surfaceContainerHigh }]}>
+            <AppIcon name="calendar-today" size={14} color={palette.primary} />
+            <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant, fontWeight: '600' }} maxFontSizeMultiplier={2}>
               {weekCount} this week
             </Text>
           </View>
@@ -136,57 +231,92 @@ export function HistoryScreen() {
         keyExtractor={(r) => r.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        initialNumToRender={8}
+        updateCellsBatchingPeriod={50}
         ListHeaderComponent={
           runs.length > 0 ? (
             <>
               <View style={styles.widgetRow}>
-                <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-                  <ProgressRing progress={ringProgress} color={palette.accent} trackColor={palette.surfaceVariant}>
+                <Card variant="elevated" style={styles.widget} contentStyle={styles.widgetContent}>
+                  <ProgressRing progress={ringProgress} color={palette.primary} trackColor={palette.surfaceContainerHighest}>
                     <View style={styles.ringCenter}>
-                      <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                      <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
                         {weekKm.toFixed(1)}
                       </Text>
-                      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                      <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
                         km
                       </Text>
                     </View>
                   </ProgressRing>
-                  <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                  <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.onSurface }]} maxFontSizeMultiplier={2}>
                     Weekly Distance
                   </Text>
-                  <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                  <Text variant="bodySmall" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
                     {weekKm >= 30 ? 'Goal reached!' : `${(30 - weekKm).toFixed(1)} km to goal`}
                   </Text>
-                </View>
+                </Card>
 
-                <View style={[styles.widget, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-                  <ProgressRing progress={streakProgress} color={palette.primary} trackColor={palette.surfaceVariant}>
+                <Card variant="elevated" style={styles.widget} contentStyle={styles.widgetContent}>
+                  <ProgressRing progress={streakProgress} color={palette.tertiary} trackColor={palette.surfaceContainerHighest}>
                     <View style={styles.ringCenter}>
-                      <AppIcon name="local-fire-department" size={22} color={palette.primary} />
-                      <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
+                      <AppIcon name="local-fire-department" size={20} color={palette.tertiary} />
+                      <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
                         {streakDays}
                       </Text>
-                      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                      <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
                         days
                       </Text>
                     </View>
                   </ProgressRing>
-                  <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+                  <Text variant="labelMedium" style={[styles.widgetLabel, { color: palette.onSurface }]} maxFontSizeMultiplier={2}>
                     Current Streak
                   </Text>
-                  <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                    {streakDays > 0 ? 'Keep the momentum!' : 'Go for a run today'}
+                  <Text variant="bodySmall" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+                    {streakDays > 0 ? 'Keep it up!' : 'Run today'}
                   </Text>
-                </View>
+                </Card>
               </View>
 
               <View style={styles.monthRow}>
-                <Chip selected={month === 'all'} onPress={() => setMonth('all')}>All</Chip>
-                {months.map((m) => (
-                  <Chip key={m} selected={month === m} onPress={() => setMonth(m)}>
-                    {monthLabel(m)}
-                  </Chip>
-                ))}
+                <Chip
+                  selected={month === 'all'}
+                  onPress={() => setMonth('all')}
+                  icon={month === 'all' ? () => <AppIcon name="check" size={16} color={palette.onSecondaryContainer} /> : undefined}
+                  style={[
+                    styles.filterChip,
+                    month === 'all' && { backgroundColor: palette.secondaryContainer },
+                  ]}
+                  textStyle={{
+                    color: month === 'all' ? palette.onSecondaryContainer : palette.onSurfaceVariant,
+                    fontWeight: month === 'all' ? '700' : '500',
+                  }}
+                >
+                  All
+                </Chip>
+                {months.map((m) => {
+                  const isSelected = month === m;
+                  return (
+                    <Chip
+                      key={m}
+                      selected={isSelected}
+                      onPress={() => setMonth(m)}
+                      icon={isSelected ? () => <AppIcon name="check" size={16} color={palette.onSecondaryContainer} /> : undefined}
+                      style={[
+                        styles.filterChip,
+                        isSelected && { backgroundColor: palette.secondaryContainer },
+                      ]}
+                      textStyle={{
+                        color: isSelected ? palette.onSecondaryContainer : palette.onSurfaceVariant,
+                        fontWeight: isSelected ? '700' : '500',
+                      }}
+                    >
+                      {monthLabel(m)}
+                    </Chip>
+                  );
+                })}
               </View>
             </>
           ) : null
@@ -195,58 +325,11 @@ export function HistoryScreen() {
           <EmptyState
             icon="directions-run"
             title="No runs yet"
-            subtitle="Record your first run from the Run tab. Distance, pace and splits will show up here."
+            subtitle="Record your first run from the Run tab. Distance, pace, and splits will show up here."
             iconSize={56}
           />
         }
-        renderItem={({ item, index }) => {
-          const prev = sorted[index + 1];
-          const moving = item.duration_s - (item.paused_s ?? 0);
-          const prevMoving = prev ? prev.duration_s - (prev.paused_s ?? 0) : 0;
-          const pace = moving > 0 && item.distance_m > 0 ? moving / (item.distance_m / 1000) : null;
-          const prevPace =
-            prev && prevMoving > 0 && prev.distance_m > 0 ? prevMoving / (prev.distance_m / 1000) : null;
-          const improved = pace != null && prevPace != null && pace < prevPace - 2;
-          const isThisWeek = new Date(item.start_time).getTime() >= startOfWeek(new Date()).getTime();
-
-          return (
-            <Animated.View entering={FadeIn.duration(300)}>
-            <AnimatedPressable
-              accessibilityRole="button"
-              accessibilityLabel={`Run on ${formatDate(item.start_time)}, ${formatDistance(item.distance_m)}, ${formatDuration(item.duration_s)}`}
-              onPress={() => navigation.navigate('RunDetail', { runId: item.id })}
-              onLongPress={() => confirmDelete(item)}
-              style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.border }]}
-            >
-              <View style={styles.cardMain}>
-                <Text variant="displaySmall" style={{ color: palette.text }} maxFontSizeMultiplier={2} numberOfLines={1} adjustsFontSizeToFit>
-                  {formatDistance(item.distance_m)}
-                </Text>
-                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                  {formatDate(item.start_time)} · {formatDuration(item.duration_s)}
-                </Text>
-                <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
-                  {formatPace(pace)}
-                </Text>
-              </View>
-              <View style={styles.cardSide}>
-                {improved ? (
-                  <View style={[styles.badge, { backgroundColor: palette.primary }]}>
-                    <AppIcon name="trending-up" size={12} color={palette.onPrimary} />
-                    <Text variant="labelSmall" style={{ color: palette.onPrimary }} maxFontSizeMultiplier={2}>
-                      Pace improved
-                    </Text>
-                  </View>
-                ) : null}
-                {isThisWeek ? (
-                  <View style={[styles.weekDot, { backgroundColor: palette.primary }]} accessibilityLabel="This week" />
-                ) : null}
-                <Text variant="bodyLarge" style={{ color: palette.textMuted }}>›</Text>
-              </View>
-            </AnimatedPressable>
-            </Animated.View>
-          );
-        }}
+        renderItem={renderRunItem}
       />
     </SafeAreaView>
   );
@@ -266,12 +349,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radii.pill,
-    borderWidth: 1,
   },
   widgetRow: {
     flexDirection: 'row',
     gap: spacing.md,
     marginBottom: spacing.sm,
+  },
+  widget: {
+    flex: 1,
+    borderRadius: radii.large,
+  },
+  widgetContent: {
+    alignItems: 'center',
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  ringCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  widgetLabel: {
+    marginTop: spacing.xs,
+    fontWeight: '700',
   },
   monthRow: {
     flexDirection: 'row',
@@ -279,37 +379,22 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginBottom: spacing.sm,
   },
-  widget: {
-    flex: 1,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.xs,
+  filterChip: {
+    borderRadius: radii.small,
   },
-  ringCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 0,
-  },
-  widgetLabel: {
-    marginTop: spacing.sm,
-  },
-  card: {
+  cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radii.lg,
-    borderWidth: 1,
     padding: spacing.lg,
     minHeight: 96,
   },
   cardMain: {
     flex: 1,
-    gap: 2,
+    gap: 4,
   },
   cardSide: {
     alignItems: 'flex-end',
+    justifyContent: 'center',
     gap: spacing.sm,
   },
   badge: {

@@ -3,10 +3,9 @@ import { Chip, Text } from 'react-native-paper';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
-import { spacing, radii } from '../theme/colors';
-import { overlayTokens } from '../theme/tokens';
-
+import { spacing, radii, overlayTokens } from '../theme/tokens';
 import { BigButton } from './BigButton';
+import { Card } from './Card';
 import { AppIcon } from './AppIcon';
 import { useM3PressScale } from '../hooks/useM3PressScale';
 
@@ -122,7 +121,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
 
   return (
     <View style={styles.group}>
-      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+      <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
         Days
       </Text>
       <View style={styles.presetRow}>
@@ -132,25 +131,36 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
             label={p.label}
             variant={sameSet(days, p.days) ? 'primary' : 'secondary'}
             onPress={() => onDaysChange([...p.days].sort())}
-            style={{ flex: 1, paddingHorizontal: 0, minHeight: 40, minWidth: 42 }}
+            compact
+            style={{ flex: 1, minHeight: 40 }}
           />
         ))}
       </View>
       <View style={styles.dayRow}>
-        {DAY_NAMES.map((d, i) => (
-          <Chip
-            key={d}
-            selected={days.includes(i)}
-            onPress={() => toggleDay(i)}
-            accessibilityHint={days.includes(i) ? `Remove reminder for ${d}` : `Add reminder for ${d}`}
-            style={styles.dayChip}
-          >
-            {d}
-          </Chip>
-        ))}
+        {DAY_NAMES.map((d, i) => {
+          const isSelected = days.includes(i);
+          return (
+            <Chip
+              key={d}
+              selected={isSelected}
+              onPress={() => toggleDay(i)}
+              accessibilityHint={isSelected ? `Remove reminder for ${d}` : `Add reminder for ${d}`}
+              style={[
+                styles.dayChip,
+                isSelected && { backgroundColor: palette.secondaryContainer },
+              ]}
+              textStyle={{
+                color: isSelected ? palette.onSecondaryContainer : palette.onSurfaceVariant,
+                fontWeight: isSelected ? '700' : '500',
+              }}
+            >
+              {d}
+            </Chip>
+          );
+        })}
       </View>
 
-      <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+      <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
         Time
       </Text>
       <Pressable
@@ -159,30 +169,30 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
         onPress={openPicker}
         style={({ pressed }) => [
           styles.timeRow,
-          { backgroundColor: palette.surface, borderColor: palette.border },
+          { backgroundColor: palette.surface, borderColor: palette.outlineVariant },
           pressed && { opacity: 0.8 },
         ]}
       >
         <View style={styles.timeRowLeft}>
           <AppIcon name="schedule" size={18} color={palette.primary} />
-          <Text variant="bodyLarge" style={{ color: palette.text, fontWeight: '700' }} maxFontSizeMultiplier={2}>
+          <Text variant="bodyLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
             {timeLabel}
           </Text>
         </View>
-        <AppIcon name="keyboard-arrow-down" size={20} color={palette.textMuted} />
+        <AppIcon name="keyboard-arrow-down" size={20} color={palette.onSurfaceVariant} />
       </Pressable>
 
       <Modal visible={timeOpen} transparent animationType="fade" onRequestClose={() => setTimeOpen(false)}>
         <View style={styles.backdrop}>
-          <View style={[styles.modal, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="titleLarge" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
+          <Card variant="elevated" style={styles.modal} contentStyle={styles.modalContent}>
+            <Text variant="titleLarge" style={{ color: palette.onSurface, textAlign: 'center', fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Reminder time
             </Text>
 
             <View style={styles.displayWrap}>
               <Text
                 variant="displayMedium"
-                style={{ color: palette.primary }}
+                style={{ color: palette.primary, fontWeight: '700' }}
                 maxFontSizeMultiplier={2}
                 accessibilityLiveRegion="polite"
               >
@@ -192,12 +202,12 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
 
             <View style={styles.steppersRow}>
               <View style={styles.stepper}>
-                <Text variant="labelMedium" style={{ color: palette.textMuted, marginBottom: spacing.xs }} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant, marginBottom: spacing.xs }} maxFontSizeMultiplier={2}>
                   Hour
                 </Text>
                 <StepButton dir={1} onStep={stepHour} label="Increase hour" color={palette.primary} />
-                <View style={[styles.stepperValue, { borderColor: palette.border, backgroundColor: palette.surfaceVariant }]}>
-                  <Text variant="titleLarge" style={[{ fontWeight: '800' }, { color: palette.text }]} maxFontSizeMultiplier={2}>
+                <View style={[styles.stepperValue, { borderColor: palette.outlineVariant, backgroundColor: palette.surfaceContainerHighest }]}>
+                  <Text variant="titleLarge" style={[{ fontWeight: '800' }, { color: palette.onSurface }]} maxFontSizeMultiplier={2}>
                     {String(draftHour).padStart(2, '0')}
                   </Text>
                 </View>
@@ -205,12 +215,12 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
               </View>
 
               <View style={styles.stepper}>
-                <Text variant="labelMedium" style={{ color: palette.textMuted, marginBottom: spacing.xs }} maxFontSizeMultiplier={2}>
+                <Text variant="labelMedium" style={{ color: palette.onSurfaceVariant, marginBottom: spacing.xs }} maxFontSizeMultiplier={2}>
                   Minute
                 </Text>
                 <StepButton dir={1} onStep={stepMinute} label="Increase minute" color={palette.primary} />
-                <View style={[styles.stepperValue, { borderColor: palette.border, backgroundColor: palette.surfaceVariant }]}>
-                  <Text variant="titleLarge" style={[{ fontWeight: '800' }, { color: palette.text }]} maxFontSizeMultiplier={2}>
+                <View style={[styles.stepperValue, { borderColor: palette.outlineVariant, backgroundColor: palette.surfaceContainerHighest }]}>
+                  <Text variant="titleLarge" style={[{ fontWeight: '800' }, { color: palette.onSurface }]} maxFontSizeMultiplier={2}>
                     {String(draftMinute).padStart(2, '0')}
                   </Text>
                 </View>
@@ -218,7 +228,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
               </View>
             </View>
 
-            <Text variant="labelMedium" style={{ color: palette.textMuted, textAlign: 'center' }} maxFontSizeMultiplier={2}>
+            <Text variant="labelSmall" style={{ color: palette.onSurfaceVariant, textAlign: 'center' }} maxFontSizeMultiplier={2}>
               Steps of 5 minutes · hold a button to scroll
             </Text>
 
@@ -233,7 +243,7 @@ export function ReminderPicker({ days, onDaysChange, hour, minute, onTimeChange 
                 style={{ flex: 1 }}
               />
             </View>
-          </View>
+          </Card>
         </View>
       </Modal>
     </View>
@@ -278,8 +288,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   modal: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    borderRadius: radii.extraLarge,
+  },
+  modalContent: {
     padding: spacing.xl,
     gap: spacing.md,
   },
@@ -304,7 +315,7 @@ const styles = StyleSheet.create({
   stepperValue: {
     minWidth: 96,
     minHeight: 68,
-    borderRadius: radii.lg,
+    borderRadius: radii.large,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { createAnimatedComponent } from 'react-native-reanimated';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme/colors';
@@ -52,8 +52,27 @@ export function BigButton({
       : variant === 'secondary'
         ? 'contained-tonal'
         : 'text';
-  const buttonColor = variant === 'danger' ? palette.error : undefined;
-  const textColor = variant === 'danger' ? palette.onError : undefined;
+
+  const buttonColor =
+    variant === 'danger'
+      ? palette.error
+      : variant === 'primary'
+        ? palette.primary
+        : variant === 'secondary'
+          ? palette.secondaryContainer
+          : undefined;
+
+  const textColor =
+    variant === 'danger'
+      ? palette.onError
+      : variant === 'primary'
+        ? palette.onPrimary
+        : variant === 'secondary'
+          ? palette.onSecondaryContainer
+          : palette.primary;
+
+  const iconColor = disabled ? palette.onSurfaceVariant : textColor;
+
   // Ghost buttons sit over maps and glass panels; give them a subtle
   // container fill so they stay visible (MD3 text-mode is transparent).
   const ghostStyle =
@@ -72,10 +91,10 @@ export function BigButton({
       disabled={disabled}
       loading={loading}
       compact={compact}
-      icon={icon ? () => <AppIcon name={icon} size={20} color={disabled ? palette.onSurfaceVariant : undefined} /> : undefined}
+      icon={icon ? () => <View style={{ marginRight: 8 }}><AppIcon name={icon} size={size === 'large' ? 22 : 18} color={iconColor} /></View> : undefined}
       contentStyle={[styles.content, compact && styles.contentCompact, size === 'large' && styles.contentLarge]}
       style={[{ borderRadius: radii.pill }, ghostStyle, animatedStyle, style]}
-      labelStyle={size === 'large' ? styles.labelLarge : undefined}
+      labelStyle={[styles.label, size === 'large' && styles.labelLarge, icon ? { marginLeft: 8 } : undefined]}
       accessibilityHint={accessibilityHint}
       accessibilityLabel={accessibilityLabel}
     >
@@ -87,15 +106,24 @@ export function BigButton({
 const styles = StyleSheet.create({
   content: {
     minHeight: 52,
-    paddingHorizontal: spacing.lg,
-  },
-  contentCompact: {
     paddingHorizontal: spacing.md,
   },
+  contentCompact: {
+    paddingHorizontal: spacing.sm,
+  },
   contentLarge: {
-    minHeight: 64,
+    minHeight: 60,
+    paddingHorizontal: spacing.md,
+  },
+  label: {
+    fontWeight: '600',
+    fontSize: 15,
+    letterSpacing: 0.1,
+    marginHorizontal: 4,
   },
   labelLarge: {
     fontWeight: '700',
+    fontSize: 16,
+    letterSpacing: 0.2,
   },
 });

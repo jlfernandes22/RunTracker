@@ -137,19 +137,22 @@ function hexToRgb(hex: string): string {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 }
 
-function scalePaperFonts<T extends { fonts: Record<string, { fontSize?: number; lineHeight?: number }> }>(
+function scalePaperFonts<T extends { fonts: Record<string, any> }>(
   theme: T,
   fs: number,
 ): T {
   if (fs === 1) return theme;
-  const fonts: Record<string, { fontSize?: number; lineHeight?: number }> = {};
+  const fonts: Record<string, any> = {};
   for (const key of Object.keys(theme.fonts)) {
     const f = theme.fonts[key];
-    fonts[key] = {
-      ...f,
-      fontSize: f.fontSize != null ? Math.round(f.fontSize * fs) : undefined,
-      lineHeight: f.lineHeight != null ? Math.round(f.lineHeight * fs) : undefined,
-    };
+    const scaled: Record<string, any> = { ...f };
+    if (typeof f.fontSize === 'number') {
+      scaled.fontSize = Math.round(f.fontSize * fs);
+    }
+    if (typeof f.lineHeight === 'number') {
+      scaled.lineHeight = Math.round(f.lineHeight * fs);
+    }
+    fonts[key] = scaled;
   }
   return { ...theme, fonts };
 }
@@ -222,9 +225,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const theme = isDark ? highContrastDarkTheme : highContrastLightTheme;
       const scaled = scalePaperFonts(theme, settings.fontScale);
       return {
-        paperTheme: settings.reduceMotion
-          ? { ...scaled, animation: { ...scaled.animation, scale: 0 } }
-          : scaled,
+        paperTheme: scaled,
         palette: buildPalette(colors, status),
       };
     }
@@ -236,12 +237,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const theme = isDark ? darkTheme : lightTheme;
     const scaled = scalePaperFonts(theme, settings.fontScale);
     return {
-      paperTheme: settings.reduceMotion
-        ? { ...scaled, animation: { ...scaled.animation, scale: 0 } }
-        : scaled,
+      paperTheme: scaled,
       palette: buildPalette(colors, status),
     };
-  }, [isDark, settings.highContrast, settings.reduceMotion, settings.fontScale]);
+  }, [isDark, settings.highContrast, settings.fontScale]);
 
   const typography = useMemo(() => buildTypography(settings.fontScale), [settings.fontScale]);
 

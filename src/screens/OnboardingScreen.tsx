@@ -4,10 +4,11 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useDialog } from '../components/Dialog';
-import { spacing, radii } from '../theme/colors';
+import { spacing, radii } from '../theme/tokens';
 import { AppIcon, AppIconName } from '../components/AppIcon';
 import { BigButton } from '../components/BigButton';
-import { ToggleRow } from '../components/Controls';
+import { Card } from '../components/Card';
+import { SettingsGroup, ToggleRow } from '../components/Controls';
 import { ReminderPicker } from '../components/ReminderPicker';
 import { db } from '../db/database';
 import { setSoundEnabled, setVibrationEnabled } from '../services/AudioCue';
@@ -106,7 +107,10 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
             key={i}
             style={[
               styles.dot,
-              { backgroundColor: i === step ? palette.primary : palette.border },
+              {
+                backgroundColor: i === step ? palette.primary : palette.surfaceContainerHighest,
+                width: i === step ? 24 : 8,
+              },
             ]}
           />
         ))}
@@ -115,30 +119,30 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {step === 0 ? (
           <View style={styles.step}>
-            <View style={[styles.logoCircle, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+            <View style={[styles.logoCircle, { backgroundColor: palette.surfaceContainerHigh }]}>
               <AppIcon name="my-location" size={56} color={palette.primary} />
             </View>
-            <Text variant="headlineLarge" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
+            <Text variant="headlineMedium" style={{ color: palette.onSurface, textAlign: 'center', fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Welcome to RunTracker
             </Text>
-            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.onSurfaceVariant, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
               Your offline running companion. Let's get you set up in under a minute.
             </Text>
             <View style={styles.featureList}>
               {FEATURES.map((f) => (
-                <View key={f.title} style={[styles.featureCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-                  <View style={[styles.featureIcon, { backgroundColor: palette.surfaceVariant }]}>
-                    <AppIcon name={f.icon} size={20} color={palette.primary} />
+                <Card key={f.title} variant="elevated" contentStyle={styles.featureCard}>
+                  <View style={[styles.featureIcon, { backgroundColor: palette.primaryContainer }]}>
+                    <AppIcon name={f.icon} size={22} color={palette.onPrimaryContainer} />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text variant="bodyLarge" style={{ color: palette.text, fontWeight: '700' }} maxFontSizeMultiplier={2}>
+                    <Text variant="titleMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
                       {f.title}
                     </Text>
-                    <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                    <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
                       {f.text}
                     </Text>
                   </View>
-                </View>
+                </Card>
               ))}
             </View>
           </View>
@@ -146,16 +150,16 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
         {step === 1 ? (
           <View style={styles.step}>
-            <Text variant="headlineSmall" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
+            <Text variant="headlineSmall" style={{ color: palette.onSurface, textAlign: 'center', fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Set your preferences
             </Text>
-            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.onSurfaceVariant, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
               You can change all of these later in Settings.
             </Text>
-            <View style={styles.toggleGroup}>
+            <SettingsGroup>
               <ToggleRow
                 label="Sound cues"
-                hint="Beeps for start, pause and every kilometer"
+                hint="Beeps for start, pause and each kilometer"
                 value={sound}
                 onValueChange={setSound}
               />
@@ -184,38 +188,40 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
                 onValueChange={setReminders}
               />
               {reminders ? (
-                <ReminderPicker
-                  days={days}
-                  onDaysChange={setDays}
-                  hour={hour}
-                  minute={minute}
-                  onTimeChange={(h, m) => {
-                    setHour(h);
-                    setMinute(m);
-                  }}
-                />
+                <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.md }}>
+                  <ReminderPicker
+                    days={days}
+                    onDaysChange={setDays}
+                    hour={hour}
+                    minute={minute}
+                    onTimeChange={(h, m) => {
+                      setHour(h);
+                      setMinute(m);
+                    }}
+                  />
+                </View>
               ) : null}
-            </View>
+            </SettingsGroup>
           </View>
         ) : null}
 
         {step === 2 ? (
           <View style={styles.step}>
-            <View style={[styles.logoCircle, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+            <View style={[styles.logoCircle, { backgroundColor: palette.surfaceContainerHigh }]}>
               <AppIcon name="gps-fixed" size={56} color={palette.primary} />
             </View>
-            <Text variant="headlineSmall" style={{ color: palette.text, textAlign: 'center' }} maxFontSizeMultiplier={2}>
+            <Text variant="headlineSmall" style={{ color: palette.onSurface, textAlign: 'center', fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Location access
             </Text>
-            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.textMuted, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: palette.onSurfaceVariant, textAlign: 'center' }]} maxFontSizeMultiplier={2}>
               To record your runs and show your position on the map, RunTracker needs location permission. It is never shared — everything stays on your device.
             </Text>
-            <View style={[styles.privacyCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-              <AppIcon name="lock" size={18} color={palette.primary} />
-              <Text variant="bodyMedium" style={{ color: palette.text, flex: 1 }} maxFontSizeMultiplier={2}>
+            <Card variant="filled" contentStyle={styles.privacyCard}>
+              <AppIcon name="lock" size={20} color={palette.primary} />
+              <Text variant="bodyMedium" style={{ color: palette.onSurface, flex: 1, fontWeight: '500' }} maxFontSizeMultiplier={2}>
                 Location data is used only while you run and is stored locally.
               </Text>
-            </View>
+            </Card>
           </View>
         ) : null}
       </ScrollView>
@@ -246,11 +252,11 @@ const styles = StyleSheet.create({
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: spacing.sm,
     paddingTop: spacing.lg,
   },
   dot: {
-    width: 8,
     height: 8,
     borderRadius: 4,
   },
@@ -266,7 +272,6 @@ const styles = StyleSheet.create({
     width: 116,
     height: 116,
     borderRadius: 58,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -281,26 +286,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
     padding: spacing.lg,
   },
   featureIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  toggleGroup: {
-    gap: spacing.sm,
   },
   privacyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
     padding: spacing.lg,
   },
   footer: {

@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Dialog as PaperDialog, Portal, Text } from 'react-native-paper';
 import { useTheme } from '../theme/ThemeContext';
-import { spacing } from '../theme/colors';
+import { spacing, radii } from '../theme/tokens';
 import { BigButton } from './BigButton';
 import { AppIconName } from './AppIcon';
 
@@ -43,37 +43,39 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     <DialogContext.Provider value={{ alert }}>
       {children}
       <Portal>
-        <PaperDialog visible={options != null} onDismiss={close} style={styles.dialog}>
+        <PaperDialog
+          visible={options != null}
+          onDismiss={close}
+          style={[styles.dialog, { backgroundColor: palette.surfaceContainerHigh }]}
+        >
           {options ? (
-            <>
-              <PaperDialog.Title>
-                <Text variant="titleLarge" style={{ color: palette.text }}>
-                  {options.title}
-                </Text>
-              </PaperDialog.Title>
-              {options.message ? (
-                <PaperDialog.Content>
-                  <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }}>
-                    {options.message}
-                  </Text>
-                </PaperDialog.Content>
-              ) : null}
-              <PaperDialog.Actions style={styles.actions}>
-                {options.buttons.map((b, i) => (
-                  <BigButton
-                    key={i}
-                    label={b.label}
-                    icon={b.icon}
-                    variant={b.variant ?? 'primary'}
-                    onPress={() => {
-                      close();
-                      b.onPress?.();
-                    }}
-                    style={{ width: '100%' }}
-                  />
-                ))}
-              </PaperDialog.Actions>
-            </>
+            <PaperDialog.Title style={[styles.title, { color: palette.onSurface }]}>
+              {options.title}
+            </PaperDialog.Title>
+          ) : null}
+          {options?.message ? (
+            <PaperDialog.Content>
+              <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }}>
+                {options.message}
+              </Text>
+            </PaperDialog.Content>
+          ) : null}
+          {options ? (
+            <PaperDialog.Actions style={styles.actions}>
+              {options.buttons.map((b, i) => (
+                <BigButton
+                  key={i}
+                  label={b.label}
+                  icon={b.icon}
+                  variant={b.variant ?? 'primary'}
+                  onPress={() => {
+                    close();
+                    b.onPress?.();
+                  }}
+                  style={{ width: '100%' }}
+                />
+              ))}
+            </PaperDialog.Actions>
           ) : null}
         </PaperDialog>
       </Portal>
@@ -83,7 +85,10 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   dialog: {
-    borderRadius: 28,
+    borderRadius: radii.extraLarge,
+  },
+  title: {
+    fontWeight: '700',
   },
   actions: {
     padding: spacing.md,

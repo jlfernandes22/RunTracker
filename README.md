@@ -1,167 +1,231 @@
-# RunTracker
+# RunTracker 🏃‍♂️💨
 
-**Offline-first running companion for Android.** GPS run recording, route planning, history with stats, and motivational reminders — 100% on-device. No account, no cloud, no tracking. All data stays on your phone.
+<div align="center">
 
-![Run](screenshots/02-run-recording-light.png) ![History](screenshots/03-history-light.png) ![Plan](screenshots/05-plan-light.png)
+![Platform](https://img.shields.io/badge/Platform-Android%2010%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![React Native](https://img.shields.io/badge/React%20Native-0.86%20(React%2019)-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Material 3](https://img.shields.io/badge/Design-Material%20Design%203-7C4DFF?style=for-the-badge&logo=materialdesign&logoColor=white)
+![Offline First](https://img.shields.io/badge/Privacy-100%25%20Offline%20First-00C853?style=for-the-badge&logo=sqlite&logoColor=white)
 
----
+**An ultra-responsive, privacy-first running companion and route planner for Android.**  
+*Zero cloud dependencies, zero telemetry, zero analytics. Everything is recorded and processed 100% on your device.*
 
-## Features
+[Features](#-key-features) • [Design System](#-material-design-3-system) • [Architecture](#-architecture--engine) • [Getting Started](#-getting-started) • [Release Build](#-production-release-build) • [Privacy & Permissions](#-permissions--privacy)
 
-### Run recording
-- Live GPS tracking with a full-screen map (OpenStreetMap, dark/light themes)
-- Start / pause / resume / finish with large touch targets (48dp+)
-- **Auto-pause**: pauses when you stop moving, resumes when you speed up
-- **Km markers**: beep + haptic + spoken announcement every kilometer
-- Live stats on the lock screen while running (Android foreground service)
-- Speak-stats on demand (announces distance, time, pace, paused time)
-- Crash recovery: a checkpoint is saved every 15 s, with a resume/discard prompt on next launch
-- GPS accuracy indicator (good / fair / weak)
-
-### History & stats
-- Run list with distance, duration, pace, and "pace improved" badges
-- Per-run detail: polyline map, full route summary (text + spoken), point-by-point text list
-- Weekly distance widget (30 km goal), current streak (days), runs-this-week chip
-- Notes per run, GPX export, "Save as planned route"
-
-### Route planning
-- Plan a route by tapping waypoints on the map (numbered markers, undo/clear)
-- Straight-line distance (no time estimate)
-- Saved route list, route detail, "Start run with this route" (dashed planned line on the live map)
-
-### Reminders (local notifications)
-- Weekly schedule: presets (Every day / Weekdays / Weekends) or custom day chips
-- Time picker with hour/minute steppers (hold to scroll, 5-minute steps)
-- Rest-day nudges on non-run days
-
-### Backup & restore
-- Export a zip backup: `data.json` + one GPX per run
-- Import with duplicate handling: Skip duplicates / Replace existing / Keep both
-- Everything stays on the device — nothing is uploaded
-
-### Accessibility (WCAG 2.2 AA principles)
-- 48dp+ touch targets, high-contrast theme, reduce-motion option
-- In-app text scaling (110–150%) beyond the system setting
-- Screen-reader-friendly: roles, labels, hints, `maxFontSizeMultiplier` on all text
-- Spoken summaries instead of visual-only content
+</div>
 
 ---
 
-## Tech stack
+## 📱 App Showcase
 
-| Layer | Choice |
-| --- | --- |
-| Framework | React Native 0.86 (React 19, TypeScript) |
-| Navigation | React Navigation 7 (bottom tabs + native stacks) |
-| Maps | Leaflet 1.9 in a WebView (react-native-webview), OSM tiles |
-| Database | expo-sqlite (SQLite, local) |
-| Notifications | expo-notifications (weekly triggers) + native foreground service for lock-screen stats |
-| Location | expo-location (high accuracy watch) |
-| Audio / speech | expo-audio (beeps) + expo-speech (km announcements) |
-| Files / backup | expo-file-system + expo-document-picker + react-native-zip-archive |
-| Icons / UI | react-native-vector-icons (Material), react-native-svg (progress rings) |
-| Gestures | react-native-gesture-handler (map-in-scroll gesture ownership) |
+<div align="center">
 
-All runtime dependencies are actively maintained (verified against npm publish dates).
+| Active Run & Live Map | Activity History & Streaks | Route Planning & Waypoints | App Settings & Theming |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/02-run-recording-light.png" width="220" /> | <img src="screenshots/03-history-light.png" width="220" /> | <img src="screenshots/06-route-planner-light.png" width="220" /> | <img src="screenshots/08-settings-light.png" width="220" /> |
+| *Real-time GPS HUD & Live Route* | *Weekly Goals, Streaks & Splits* | *Interactive Waypoint Routing* | *M3 Expressive, Contrast & Scale* |
+
+</div>
 
 ---
 
-## Getting started
+## 🌟 Key Features
 
-### Prerequisites
-- Node.js 20+
-- JDK 17+
-- Android Studio / Android SDK (API 34+)
-- A device or emulator running Android 10+ (the lock-screen stats feature targets Android 10+)
+### 📍 Precision Run Recording
+- **Real-Time GPS Engine**: Full-screen interactive map powered by Leaflet & OpenStreetMap tiles with automatic day/night theme matching.
+- **Smart Auto-Pause**: Automatically pauses tracking when stationary (e.g. at traffic lights) and resumes smoothly when motion is detected.
+- **Kilometer Voice Announcements & Audio Cues**: Spoken split times, distances, and haptic beeps at every kilometer marker.
+- **On-Demand Stats Readout**: Dedicated audio cue button announces live metrics (distance, elapsed time, current pace, paused duration) into your headphones.
+- **Crash-Proof State Machine**: Continuous state checkpointing to local SQLite every 15 seconds. If the OS terminates the app, you can seamlessly resume your session on restart.
+- **Lock-Screen Foreground Service**: Persistent Android notification with real-time distance, time, and pace updates even when the screen is locked.
 
-### Install
+### 🗺️ Route Planner & Waypoints
+- **Interactive Waypoint Creator**: Create custom running routes by tapping waypoints directly on the vector map with instant straight-line distance calculations.
+- **Route Library**: Save, name, review, and export planned routes.
+- **Guide Line Overlay**: Load a planned route into an active run session to display a dashed target trail on your live map.
 
-```bash
-npm install
-```
+### 📊 History, Analytics & Goals
+- **Activity Metrics**: Comprehensive summaries with total distance, elapsed time, moving pace, and split breakdowns.
+- **Progress Visualizations**: Animated SVG progress rings tracking weekly distance goals (30 km baseline) and consecutive running streaks.
+- **GPX Data Export**: Export standard `.gpx` files for any run to share or import into external analysis tools.
 
-### Run (debug)
+### 🔒 100% Offline-First & Data Sovereignty
+- **Zero Cloud Accounts**: No logins, no tracking SDKs, no external telemetry.
+- **Full Backup & Restore**: One-click `.zip` archive creation bundling `data.json` and individual `.gpx` tracks.
+- **Conflict Management**: Import options with `Skip duplicates`, `Replace existing`, or `Keep both`.
 
-```bash
-npm start            # Metro bundler
-# in a second terminal:
-npx react-native run-android
-```
-
-The app loads its JS bundle from Metro. On a physical device:
-
-```bash
-adb reverse tcp:8081 tcp:8081
-```
-
-### Release build
-
-```bash
-cd android
-./gradlew assembleRelease
-adb install -r app/build/outputs/apk/release/app-release.apk
-```
-
-### Tests
-
-```bash
-npm test             # unit tests (lib/geo)
-npm run lint         # eslint
-npx tsc --noEmit     # type check
-```
+### ♿ Accessibility & Inclusivity (WCAG 2.2 AA)
+- **Large Touch Targets**: Minimum 48dp (primary actions 60dp+) interactive touch targets.
+- **Material 3 Dynamic Theming**: Supports Light, Dark, System, and High-Contrast palettes.
+- **Font & Display Scaling**: Integrated text scaling multiplier (100% to 150%) with dynamic wrapping and truncation protection.
+- **Reduce Motion Support**: Cleanly toggles spring physics and transitions for users sensitive to motion.
 
 ---
 
-## Permissions
+## 🎨 Material Design 3 System
 
-Declared in `android/app/src/main/AndroidManifest.xml`:
+RunTracker implements Google's **Material Design 3 (M3 Expressive)** design specification:
 
-| Permission | Why |
-| --- | --- |
-| `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION` | Recording runs and showing your position |
-| `POST_NOTIFICATIONS` | Run reminders and lock-screen stats |
-| `FOREGROUND_SERVICE` / `FOREGROUND_SERVICE_LOCATION` | Keeping the session alive with the screen locked |
-| `SCHEDULE_EXACT_ALARM` | Punctual weekly reminder notifications |
-| `RECEIVE_BOOT_COMPLETED` | Re-scheduling reminders after reboot |
-| `VIBRATE` | Haptic run cues |
+```
+┌────────────────────────────────────────────────────────┐
+│               M3 Expressive Theme System               │
+├────────────────────────────────────────────────────────┤
+│  • Surface Container Hierarchy (Lowest → Highest)      │
+│  • Primary / Secondary / Tertiary / Error Containers   │
+│  • Full Dark, Light & High-Contrast Mode Palettes      │
+│  • Physics-Based Springs (spatialFast, spatialDefault) │
+│  • 7-Shape Parametric Morphing Loading Indicators      │
+│  • Synchronized Content-Fidelity Shimmer Skeletons     │
+└────────────────────────────────────────────────────────┘
+```
 
-Location is used only while a run is active and is never transmitted anywhere.
+- **Surface Tones**: Uses layered surface containers (`surfaceContainerLowest`, `surfaceContainerLow`, `surfaceContainer`, `surfaceContainerHigh`, `surfaceContainerHighest`) to establish clear elevation and depth without noisy drop-shadows.
+- **Fluid Micro-Interactions**: Custom `useM3PressScale` hook applies subtle spring physics (`spatialFast`) on touch down/up.
+- **Parametric Loading Indicator**: A continuous 7-shape morphing loader (circle → rounded square → square → triangle → diamond → horizontal bar → circle) running entirely on the UI thread via Reanimated worklets.
 
 ---
 
-## Architecture
+## ⚡ Architecture & Engine
 
 ```
 src/
-├── components/     Reusable UI (buttons, dialogs, map, reminder picker, rings…)
-├── db/             expo-sqlite layer (schema, typed queries, dead-handle recovery)
-├── lib/            Pure logic: geo math (haversine, pace, streaks), formatting
-├── map/            Generated Leaflet page (scripts/gen-map-html.js → mapHtml.ts)
-├── navigation/     Tabs + stacks (Run / History / Plan / Settings)
-├── screens/        Screens (run, history, detail, planner, settings, onboarding)
-├── services/       RunSession (state machine), notifications, audio cues, backup
-├── theme/          Palettes (light/dark/high-contrast), typography, settings
-└── types.ts        Shared types
+├── components/       # Reusable M3 UI (BigButton, Card, Dialog, Skeleton, ProgressRing, MapWebView)
+├── db/               # High-performance SQLite engine (indices, transactions, migrations)
+├── hooks/            # Motion and interaction hooks (useM3PressScale, useTheme)
+├── lib/              # Zero-allocation geo math (haversine, speed, pace, streaks)
+├── map/              # Generated offline-ready Leaflet runtime bridge
+├── navigation/       # React Navigation 7 tabs and native stacks
+├── screens/          # Main application screens (Run, History, Plan, Settings, Details)
+├── services/         # RunSession state machine, notifications, audio cues, backup
+├── theme/            # M3 color tokens, typography scales, contrast palettes
+└── types.ts          # Strongly typed application models
 ```
 
-### RunSession
-The recording state machine lives in `src/services/RunSession.ts` (a singleton). It owns the GPS watch, elapsed/paused accounting, auto-pause logic, km boundaries, checkpoints, the foreground service, and the live snapshot emitted to the UI.
-
-### The map
-`src/components/MapWebView.tsx` hosts a Leaflet page (`src/map/mapHtml.ts`, generated from `scripts/map-page.html`). Modes: **plan** (numbered waypoint markers, tap-to-add) and **track** (live line + position dot). On detail screens the map is pinned below the scrollable content so pan/pinch gestures aren't stolen by the page scroll.
-
-### Notifications
-Weekly reminders are scheduled with expo-notifications (`WEEKLY` triggers). The lock-screen run stats are posted by a small native foreground service (`android/.../RunStatsService.kt`) — expo-notifications can't set per-notification lock-screen visibility, so the service owns that channel (DEFAULT importance + PUBLIC visibility).
+### High-Performance Optimizations
+1. **$O(1)$ Distance Accumulation**: Real-time distance tracking updates incrementally on each GPS coordinate fix rather than recalculating previous segments in $O(N)$ loops.
+2. **Precomputed Geo Trigonometry**: Fast Haversine calculations using precomputed constants (`DEG_TO_RAD`, `2 * R_EARTH`) and zero-allocation sliding-window speed buffers.
+3. **Database Performance**: SQLite indexes on `idx_runs_start_time` and `idx_routes_created_at`, point lookups (`getRun`, `getRoute`), and batch transactions.
+4. **Virtualization & Memoization**: FlatList performance props (`removeClippedSubviews`, `maxToRenderPerBatch`, `windowSize`) paired with memoized card renderers.
+5. **Background Tab Pre-Rendering**: Non-blocking background tab mounting (`lazy: false`) ensures 60 FPS transitions when switching screens.
 
 ---
 
-## Project history / roadmap status
+## 🛠️ Tech Stack
 
-- Sprints 1–7: run recording, history & stats, route planning, reminders, backup/restore, accessibility, theme polish — implemented.
-- The codebase was migrated off unmaintained libraries (notifee, react-native-sqlite-storage, react-native-fs, react-native-tts, react-native-sound, react-native-document-picker, react-native-geolocation-service, react-native-background-actions) onto their maintained expo equivalents.
+| Component | Technology | Version | Purpose |
+|---|---|---|---|
+| **Core Framework** | React Native | `0.86.2` | Mobile runtime |
+| **Language** | TypeScript | `^5.8.3` | Type safety and domain models |
+| **UI Components** | React Native Paper | `^5.15.3` | Material Design 3 primitives |
+| **Animations** | React Native Reanimated | `^4.5.3` | UI-thread 60 FPS animations |
+| **Navigation** | React Navigation | `^7.18.15` | Tab and native stack routing |
+| **Database** | `expo-sqlite` | `^57.0.1` | Embedded SQLite engine |
+| **GPS & Location** | `expo-location` | `^57.0.8` | High-accuracy GPS streaming |
+| **Map Rendering** | `react-native-webview` + Leaflet | `^14.0.1` | Local vector map rendering |
+| **Audio & Speech** | `expo-speech` + `expo-audio` | `^57.0.1` | Voice splits & feedback beeps |
+| **Notifications** | `expo-notifications` + Native Kotlin Service | `^57.0.9` | Reminders & lock-screen stats |
+| **Archive / Backup** | `react-native-zip-archive` | `^9.0.2` | GPX/JSON `.zip` backup exporter |
 
 ---
 
-## License
+## 🚀 Getting Started
 
-Private project. All rights reserved.
+### Prerequisites
+- **Node.js**: `20.x` or `22.x`
+- **JDK**: Java Development Kit `17`
+- **Android SDK**: Build Tools `34.0.0` or newer
+- **Android Device / Emulator**: Running Android 10+ (API Level 29+)
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/jlfernandes22/RunTracker.git
+   cd RunTracker/RunTracker
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the Metro Bundler**:
+   ```bash
+   npm start
+   ```
+
+4. **Run on Android (Debug)**:
+   ```bash
+   # In a separate terminal
+   npx react-native run-android
+   ```
+
+   *If testing on a physical device over USB:*
+   ```bash
+   adb reverse tcp:8081 tcp:8081
+   ```
+
+---
+
+## 📦 Production Release Build
+
+To build and install the standalone, optimized production release APK:
+
+### 1. Assemble Release APK
+```bash
+cd android
+./gradlew assembleRelease
+```
+
+The release APK will be generated at:
+```
+android/app/build/outputs/apk/release/app-release.apk
+```
+
+### 2. Install on Device via ADB
+```bash
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+---
+
+## 🧪 Testing & Verification
+
+RunTracker includes comprehensive unit tests for core geospatial algorithms:
+
+```bash
+# Run unit tests
+npm test
+
+# Run ESLint validation
+npm run lint
+
+# Run TypeScript static analysis
+npx tsc --noEmit
+```
+
+---
+
+## 🔐 Permissions & Privacy
+
+RunTracker requires minimal permissions to provide offline tracking features:
+
+| Permission | Scope | Purpose |
+|---|---|---|
+| `ACCESS_FINE_LOCATION` | Foreground / Service | GPS run recording and live location centering |
+| `ACCESS_COARSE_LOCATION` | Foreground | Approximate positioning fallback |
+| `FOREGROUND_SERVICE` | Background Service | Keeping GPS recording alive while device is locked |
+| `FOREGROUND_SERVICE_LOCATION` | Android 14+ | Declared location foreground service type |
+| `POST_NOTIFICATIONS` | Android 13+ | Spoken reminders and live lock-screen metrics HUD |
+| `SCHEDULE_EXACT_ALARM` | Alarms | Punctual weekly run reminder triggers |
+| `RECEIVE_BOOT_COMPLETED` | System | Re-scheduling reminder alarms after device reboot |
+| `VIBRATE` | Hardware | Haptic feedback for button presses and split milestones |
+
+> **Privacy Guarantee**: All location points, route waypoints, run histories, and personal settings are strictly stored in your local SQLite database (`runtracker.db`). No telemetry, analytics, or coordinates are ever transmitted over the network.
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).

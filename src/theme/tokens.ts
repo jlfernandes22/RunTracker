@@ -281,6 +281,14 @@ export const shape = {
   pill: 999,
 } as const;
 
+export const radii = {
+  ...shape,
+  sm: shape.small,
+  md: shape.medium,
+  lg: shape.large,
+  xl: shape.extraLarge,
+} as const;
+
 // ---------------------------------------------------------------------------
 // Elevation tokens (tonal — MD3 elevation is a surface tint, not just shadow)
 // ---------------------------------------------------------------------------

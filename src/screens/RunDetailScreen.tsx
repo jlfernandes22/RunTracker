@@ -4,8 +4,7 @@ import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, useMapTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { spacing } from '../theme/colors';
-import { overlayTokens } from '../theme/tokens';
+import { spacing, radii, overlayTokens } from '../theme/tokens';
 
 import { db } from '../db/database';
 import { Run } from '../types';
@@ -27,6 +26,8 @@ import { useSnackbar } from '../components/Snackbar';
 import { audio } from '../services/AudioCue';
 import { toGpx } from '../services/backup';
 import { Skeleton } from '../components/Skeleton';
+import { Card } from '../components/Card';
+import { MetricCard } from '../components/MetricCard';
 import { SavedRoute } from '../types';
 import { HistoryStackParamList } from '../navigation/RootNavigator';
 
@@ -46,16 +47,77 @@ export function RunDetailScreen() {
 
   useEffect(() => {
     setRun(undefined);
-    db.getAllRuns().then((all) => {
-      const found = all.find((r) => r.id === route.params.runId);
+    db.getRun(route.params.runId).then((found) => {
       if (found) {
         setRun(found);
         setNotes(found.notes ?? '');
       } else {
         setRun(null);
       }
+    }).catch(() => {
+      setRun(null);
     });
   }, [route.params.runId]);
+
+  const movingS = run ? run.duration_s - (run.paused_s ?? 0) : 0;
+  const pace = run && movingS > 0 && run.distance_m > 0 ? movingS / (run.distance_m / 1000) : null;
+  const splits = React.useMemo(() => (run ? computeSplits(run.polyline) : []), [run]);
+
+  const summary = React.useMemo(() => {
+    if (!run) return '';
+    return (
+      `Run on ${formatDate(run.start_time)} at ${formatTime(run.start_time)}. ` +
+      `${formatDistance(run.distance_m)} in ${formatDuration(run.duration_s)}. ` +
+      (pace != null ? `Average pace ${formatPace(pace)}. ` : '') +
+      (run.paused_s > 0 ? `Paused for ${formatDuration(run.paused_s)}. ` : '') +
+      `${run.polyline.length} GPS points recorded.`
+    );
+  }, [run, pace]);
+
+  const describeRoute = () => {
+    if (summary) audio.speak(summary);
+  };
+
+  const waypointText = React.useMemo(() => {
+    if (!run) return '';
+    return run.polyline
+      .slice(0, 50)
+      .map((p, i) => `Point ${i + 1}: ${decimalToDMS(p.lat, p.lng)}`)
+      .join('\n');
+  }, [run]);
+
+  const saveAsRoute = async () => {
+    if (!run) return;
+    const newRoute: SavedRoute = {
+      id: uuid(),
+      name: `Route ${formatDistance(run.distance_m)}`,
+      waypoints: downsamplePolyline(run.polyline, 100),
+      distance_m: run.distance_m,
+      created_at: new Date().toISOString(),
+    };
+    await db.insertRoute(newRoute);
+    dialog.alert({
+      title: 'Route saved',
+      message: `${newRoute.name} was added to your planned routes.`,
+      buttons: [
+        { label: 'Close', variant: 'ghost' },
+        {
+          label: 'Start this route',
+          onPress: () => (navigation.getParent() as any)?.navigate('Run', { routeId: newRoute.id }),
+        },
+      ],
+    });
+  };
+
+  const exportGpx = async () => {
+    if (!run) return;
+    const { Directory, File, Paths } = require('expo-file-system');
+    const dir = new Directory(Paths.document, 'runtracker_gpx');
+    dir.create({ intermediates: true, idempotent: true });
+    const file = new File(dir, `${run.id}.gpx`);
+    file.write(toGpx(run));
+    snackbar.showSnackbar('GPX file saved on this device');
+  };
 
   if (run === undefined) {
     return (
@@ -74,7 +136,7 @@ export function RunDetailScreen() {
   if (run === null) {
     return (
       <View style={[styles.container, styles.notFound, { backgroundColor: palette.background }]}>
-        <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+        <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
           Run not found
         </Text>
         <Text variant="bodyLarge" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
@@ -84,59 +146,6 @@ export function RunDetailScreen() {
     );
   }
 
-  const movingS = run.duration_s - (run.paused_s ?? 0);
-  const pace = movingS > 0 && run.distance_m > 0 ? movingS / (run.distance_m / 1000) : null;
-  const splits = computeSplits(run.polyline);
-
-  const summary =
-    `Run on ${formatDate(run.start_time)} at ${formatTime(run.start_time)}. ` +
-    `${formatDistance(run.distance_m)} in ${formatDuration(run.duration_s)}. ` +
-    (pace != null ? `Average pace ${formatPace(pace)}. ` : '') +
-    (run.paused_s > 0 ? `Paused for ${formatDuration(run.paused_s)}. ` : '') +
-    `${run.polyline.length} GPS points recorded.`;
-
-  const describeRoute = () => {
-    audio.speak(summary);
-  };
-
-  const waypointText = run.polyline
-    .slice(0, 50)
-    .map((p, i) => `Point ${i + 1}: ${decimalToDMS(p.lat, p.lng)}`)
-    .join('\n');
-
-  const saveAsRoute = async () => {
-    // A run track can have thousands of GPS points; downsampling keeps the
-    // planner map responsive.
-    const route: SavedRoute = {
-      id: uuid(),
-      name: `Route ${formatDistance(run.distance_m)}`,
-      waypoints: downsamplePolyline(run.polyline, 100),
-      distance_m: run.distance_m,
-      created_at: new Date().toISOString(),
-    };
-    await db.insertRoute(route);
-    dialog.alert({
-      title: 'Route saved',
-      message: `${route.name} was added to your planned routes.`,
-      buttons: [
-        { label: 'Close', variant: 'ghost' },
-        {
-          label: 'Start this route',
-          onPress: () => (navigation.getParent() as any)?.navigate('Run', { routeId: route.id }),
-        },
-      ],
-    });
-  };
-
-  const exportGpx = async () => {
-    const { Directory, File, Paths } = require('expo-file-system');
-    const dir = new Directory(Paths.document, 'runtracker_gpx');
-    dir.create({ intermediates: true, idempotent: true });
-    const file = new File(dir, `${run.id}.gpx`);
-    file.write(toGpx(run));
-    snackbar.showSnackbar('GPX file saved on this device');
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView
@@ -144,71 +153,57 @@ export function RunDetailScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: spacing.lg }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.summaryBox, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
+        <Card variant="elevated" contentStyle={styles.summaryBox}>
+          <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.primary }]} maxFontSizeMultiplier={2}>
             Route summary
           </Text>
-          <Text variant="bodyLarge" style={[styles.summaryText, { color: palette.text }]} maxFontSizeMultiplier={2}>
+          <Text variant="bodyLarge" style={{ color: palette.onSurface, lineHeight: 24 }} maxFontSizeMultiplier={2}>
             {summary}
           </Text>
           <View style={styles.actions}>
             <BigButton label="Read summary" icon="volume-up" onPress={describeRoute} style={{ flex: 1 }} />
             <BigButton label="Text list" icon="format-list-bulleted" onPress={() => setShowText(true)} variant="secondary" style={{ flex: 1 }} />
           </View>
-        </View>
+        </Card>
 
         <View style={styles.metricRow}>
-          <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Distance</Text>
-            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
-              {formatDistance(run.distance_m)}
-            </Text>
-          </View>
-          <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Duration</Text>
-            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
-              {formatDuration(run.duration_s)}
-            </Text>
-          </View>
+          <MetricCard label="Distance" value={formatDistance(run.distance_m)} />
+          <MetricCard label="Duration" value={formatDuration(run.duration_s)} />
         </View>
         <View style={styles.metricRow}>
-          <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Avg pace</Text>
-            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
-              {formatPace(pace)}
-            </Text>
-          </View>
-          <View style={[styles.metric, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="labelMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>Paused</Text>
-            <Text variant="titleLarge" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
-              {formatDuration(run.paused_s)}
-            </Text>
-          </View>
+          <MetricCard label="Avg Pace" value={formatPace(pace)} />
+          <MetricCard label="Paused" value={formatDuration(run.paused_s)} />
         </View>
 
         {splits.length > 0 ? (
-          <View style={[styles.splitsCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.textMuted }]} maxFontSizeMultiplier={2}>
-              Splits
+          <Card variant="elevated" contentStyle={styles.splitsCard}>
+            <Text variant="labelMedium" style={[styles.summaryTitle, { color: palette.primary }]} maxFontSizeMultiplier={2}>
+              Kilometer Splits
             </Text>
-            {splits.map((sp) => (
-              <View key={sp.km} style={styles.splitRow}>
-                <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
+            {splits.map((sp, idx) => (
+              <View
+                key={sp.km}
+                style={[
+                  styles.splitRow,
+                  idx < splits.length - 1 && { borderBottomWidth: 1, borderBottomColor: palette.outlineVariant },
+                ]}
+              >
+                <Text variant="labelLarge" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
                   Km {sp.km}
                 </Text>
-                <Text variant="bodyMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+                <Text variant="bodyLarge" style={{ color: palette.onSurface, fontWeight: '600' }} maxFontSizeMultiplier={2}>
                   {formatDuration(sp.durationS)}
                 </Text>
-                <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+                <Text variant="labelLarge" style={{ color: palette.primary, fontWeight: '700' }} maxFontSizeMultiplier={2}>
                   {formatPace(sp.durationS)}
                 </Text>
               </View>
             ))}
-          </View>
+          </Card>
         ) : null}
 
-        <View style={[styles.notes, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Text variant="titleMedium" style={{ color: palette.text }} maxFontSizeMultiplier={2}>
+        <Card variant="elevated" contentStyle={styles.notes}>
+          <Text variant="titleMedium" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
             Notes
           </Text>
           <BigButton
@@ -220,10 +215,10 @@ export function RunDetailScreen() {
             variant="ghost"
             style={{ width: '100%' }}
           />
-        </View>
+        </Card>
 
         <BigButton label="Save as planned route" icon="route" onPress={saveAsRoute} variant="secondary" style={{ width: '100%' }} />
-<BigButton label="Export GPX file" icon="file-download" onPress={exportGpx} variant="ghost" style={{ width: '100%' }} />
+        <BigButton label="Export GPX file" icon="file-download" onPress={exportGpx} variant="ghost" style={{ width: '100%' }} />
       </ScrollView>
 
       <View style={[styles.mapWrap, { height: 280 + insets.bottom + spacing.sm, borderColor: palette.outlineVariant }]}>
@@ -244,11 +239,11 @@ export function RunDetailScreen() {
         onRequestClose={() => setShowNotesEditor(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modal, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[styles.modalTitle, { color: palette.text }]} maxFontSizeMultiplier={2}>
+          <Card variant="elevated" style={styles.modal} contentStyle={styles.modalContent}>
+            <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Notes
             </Text>
-            <Text variant="bodyMedium" style={{ color: palette.textMuted }} maxFontSizeMultiplier={2}>
+            <Text variant="bodyMedium" style={{ color: palette.onSurfaceVariant }} maxFontSizeMultiplier={2}>
               How did the run feel?
             </Text>
             <TextInput
@@ -278,23 +273,23 @@ export function RunDetailScreen() {
                 style={{ flex: 1 }}
               />
             </View>
-          </View>
+          </Card>
         </View>
       </Modal>
 
       <Modal visible={showText} transparent animationType="fade" onRequestClose={() => setShowText(false)}>
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modal, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Text style={[styles.modalTitle, { color: palette.text }]} maxFontSizeMultiplier={2}>
+          <Card variant="elevated" style={styles.modal} contentStyle={styles.modalContent}>
+            <Text variant="titleLarge" style={{ color: palette.onSurface, fontWeight: '700' }} maxFontSizeMultiplier={2}>
               Route as text
             </Text>
             <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
-              <Text variant="bodyMedium" style={{ color: palette.text, lineHeight: 22 }} maxFontSizeMultiplier={2}>
+              <Text variant="bodyMedium" style={{ color: palette.onSurface, lineHeight: 22 }} maxFontSizeMultiplier={2}>
                 {waypointText}
               </Text>
             </ScrollView>
             <BigButton label="Close" onPress={() => setShowText(false)} />
-          </View>
+          </Card>
         </View>
       </Modal>
     </View>
@@ -315,23 +310,18 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   mapWrap: {
-    borderRadius: 12,
+    borderRadius: radii.large,
     overflow: 'hidden',
     borderWidth: 1,
   },
   summaryBox: {
-    borderRadius: 24,
-    borderWidth: 1,
     padding: spacing.lg,
     gap: spacing.sm,
   },
   summaryTitle: {
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
-  },
-  summaryText: {
-    lineHeight: 24,
   },
   actions: {
     flexDirection: 'row',
@@ -342,23 +332,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
   },
-  metric: {
-    flex: 1,
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: spacing.md,
-    minHeight: 88,
-    justifyContent: 'center',
-  },
   notes: {
-    borderRadius: 12,
-    borderWidth: 1,
     padding: spacing.lg,
     gap: spacing.sm,
   },
   splitsCard: {
-    borderRadius: 12,
-    borderWidth: 1,
     padding: spacing.lg,
     gap: spacing.sm,
   },
@@ -366,6 +344,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
   },
   modalBackdrop: {
     flex: 1,
@@ -374,13 +353,11 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   modal: {
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: radii.extraLarge,
+  },
+  modalContent: {
     padding: spacing.xl,
     gap: spacing.md,
-  },
-  modalTitle: {
-    fontWeight: '800',
   },
   notesInput: {
     minHeight: 90,
